@@ -717,22 +717,23 @@ async function supaInsert(booking) {
 }
 
 async function supaFetch(court, date) {
-  const dateFrom = date + 'T00:00:00';
-  const dateTo   = date + 'T23:59:59';
+  const dateOnly = date.split('T')[0];
+  const dateFrom = dateOnly + 'T00:00:00';
+  const dateTo   = dateOnly + 'T23:59:59';
   const url = SUPABASE_URL + '/rest/v1/Bookings'
-    + '?court=eq.' + encodeURIComponent(court)
-    + '&date=gte.' + encodeURIComponent(dateFrom)
-    + '&date=lte.' + encodeURIComponent(dateTo)
+    + '?court=eq.'  + encodeURIComponent(court)
+    + '&date=gte.'  + encodeURIComponent(dateFrom)
+    + '&date=lte.'  + encodeURIComponent(dateTo)
+    + '&time=not.is.null'
     + '&select=court,date,time,price,duration,user_email';
   const res = await fetch(url, {
     headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' }
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const rows = await res.json();
-  // Normalise to the same shape the rest of the app expects
   return rows.map(r => ({
     court:     r.court,
-    date:      r.date,
+    date:      (r.date || '').split('T')[0],
     time:      r.time,
     price:     r.price,
     duration:  r.duration,
@@ -909,7 +910,7 @@ function selectSlot(slot, dateVal) {
   if (!CU) { if(confirm('Sign in to book a slot. Go to Sign In?')) showScreen('login'); return; }
 
   // Prevent same user booking same slot/court/date twice
-  const dup = DB.bookings().find(b => b.court===selectedCourt && b.date===dateVal && b.time===slot.time && b.userEmail===CU.email);
+  const dup = DB.bookings().find(b => b.court===selectedCourt && b.date.startsWith(dateVal) && b.time===slot.time && b.userEmail===CU.email);
   if (dup) { toast('You already have this slot booked!', true); return; }
 
   selectedSlot = { ...slot };
