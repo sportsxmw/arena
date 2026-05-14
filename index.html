@@ -1472,7 +1472,7 @@ async function supaDelete(court, date, time) {
 
 // ============ SUPABASE USER FUNCTIONS ============
 async function supaGetUser(email) {
-  const url = SUPABASE_URL + '/rest/v1/Users?email=eq.' + encodeURIComponent(email) + '&select=email,name,phone,password,avatar';
+  const url = SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email) + '&select=email,name,phone,password,avatar';
   const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' } });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const rows = await res.json();
@@ -1480,7 +1480,7 @@ async function supaGetUser(email) {
 }
 
 async function supaCreateUser(user) {
-  const url = SUPABASE_URL + '/rest/v1/Users';
+  const url = SUPABASE_URL + '/rest/v1/users';
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
@@ -1490,7 +1490,7 @@ async function supaCreateUser(user) {
 }
 
 async function supaUpdateUser(email, updates) {
-  const url = SUPABASE_URL + '/rest/v1/Users?email=eq.' + encodeURIComponent(email);
+  const url = SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email);
   const res = await fetch(url, {
     method: 'PATCH',
     headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
