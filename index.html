@@ -839,9 +839,122 @@ body.dark .skeleton {
   background-size: 400px 100%;
 }
 
+
 /* ══════════════════════════════════════════
-   PRICE TAG ON FACILITY CARDS
+   GALLERY SCREEN
 ══════════════════════════════════════════ */
+#screen-gallery { flex-direction:column; background:#0a0a0a; padding-bottom:70px; }
+
+.gallery-stage {
+  position: relative; width: 100%;
+  height: 420px;
+  overflow: hidden; background: #111;
+  flex-shrink: 0;
+}
+
+.gallery-slides { position: relative; width: 100%; height: 100%; }
+
+.gallery-slide {
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  z-index: 0;
+  overflow: hidden;
+}
+.gallery-slide img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  display: block;
+}
+.gallery-slide.active {
+  opacity: 1;
+  z-index: 1;
+}
+.gallery-slide.active img {
+  animation: kenBurns 8s ease-in-out infinite;
+}
+.gallery-slide.exit-prev {
+  opacity: 0;
+  z-index: 0;
+}
+
+/* Ken Burns */
+@keyframes kenBurns {
+  0%   { transform: scale(1.0)  translate(0%,    0%);    }
+  33%  { transform: scale(1.07) translate(-1.2%, -0.8%); }
+  66%  { transform: scale(1.04) translate(1.0%,  0.5%);  }
+  100% { transform: scale(1.0)  translate(0%,    0%);    }
+}
+
+/* Arrows */
+.gallery-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  z-index: 10; background: rgba(0,0,0,0.45); color: #fff;
+  border: none; border-radius: 50%; width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; backdrop-filter: blur(6px);
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.gallery-arrow:hover { background: rgba(204,0,0,0.75); transform: translateY(-50%) scale(1.1); }
+.gallery-prev { left: 14px; }
+.gallery-next { right: 14px; }
+
+/* Dots */
+.gallery-dots {
+  position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 10;
+}
+.gallery-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,0.35); cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+.gallery-dot.active { background: #fff; transform: scale(1.35); }
+
+/* Counter */
+.gallery-counter {
+  position: absolute; top: 12px; right: 14px; z-index: 10;
+  background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.85);
+  font-family: var(--font-d); font-size: 13px; font-weight: 700;
+  padding: 4px 12px; border-radius: 50px; letter-spacing: 1px;
+  backdrop-filter: blur(6px);
+}
+
+/* Thumbnails */
+.gallery-thumbs {
+  display: flex; gap: 8px; padding: 14px 14px 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.gallery-thumbs::-webkit-scrollbar { display: none; }
+.gallery-thumb {
+  flex-shrink: 0; width: 72px; height: 56px;
+  border-radius: 10px; background-size: cover; background-position: center;
+  cursor: pointer; opacity: 0.45; border: 2px solid transparent;
+  transition: opacity 0.25s, border-color 0.25s, transform 0.25s;
+}
+.gallery-thumb.active { opacity: 1; border-color: var(--red); transform: scale(1.06); }
+.gallery-thumb:hover { opacity: 0.8; }
+
+/* Play/pause */
+.gallery-controls { padding: 14px 14px 0; display: flex; justify-content: center; }
+.gallery-play-btn {
+  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 50px;
+  padding: 9px 24px; font-family: var(--font-d); font-size: 15px;
+  font-weight: 700; cursor: pointer; letter-spacing: 0.5px;
+  transition: background 0.2s, color 0.2s; backdrop-filter: blur(6px);
+}
+.gallery-play-btn:hover { background: rgba(204,0,0,0.3); color: #fff; }
+
+/* Gallery facility card accent */
+.gallery-card { background: linear-gradient(145deg, #1a1a2e, #16213e) !important; box-shadow: 0 4px 16px rgba(26,26,46,0.5) !important; }
+.gallery-card:hover { box-shadow: 0 8px 28px rgba(26,26,46,0.7) !important; }
+
+/* Dark mode gallery */
+body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130; }
+
+
 .facility-price { color: rgba(255,255,255,0.65); font-size: 12px; margin-top: 2px; font-weight: 500; }
 
 </style>
@@ -936,6 +1049,20 @@ body.dark .skeleton {
           </div>
         </div>
         <button class="btn-book-sm" onclick="event.stopPropagation();openBooking('Padel Court 2')">Book</button>
+      </div>
+    </div>
+    <div class="facility-card gallery-card" onclick="showScreen('gallery')">
+      <div class="facility-card-inner">
+        <div class="facility-left">
+          <div class="facility-icon">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#fff" stroke-width="1.8"/><circle cx="8.5" cy="8.5" r="1.5" fill="#fff"/><path d="M21 15l-5-5L5 21" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="facility-name">Gallery</div>
+            <div class="facility-price">Photos from the Arena</div>
+          </div>
+        </div>
+        <button class="btn-book-sm" onclick="event.stopPropagation();showScreen('gallery')">View</button>
       </div>
     </div>
     <div class="facility-card" onclick="window.open('https://www.sportsxmw.com','_blank')">
@@ -1343,7 +1470,54 @@ body.dark .skeleton {
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- GALLERY -->
+<div class="screen" id="screen-gallery">
+  <div class="page-hdr">
+    <button class="back-btn" onclick="showScreen('home','home')">‹</button>
+    <h2>Gallery</h2>
+    <div style="width:30px"></div>
+  </div>
+  <div class="gallery-stage" id="gallery-stage">
+    <div class="gallery-slides" id="gallery-slides">
+      <div class="gallery-slide active"><img src="https://i.imgur.com/eYHanUg.jpeg" alt="Sports X Arena"></div>
+      <div class="gallery-slide"><img src="https://i.imgur.com/9FVtoM2.jpeg" alt="Sports X Arena"></div>
+      <div class="gallery-slide"><img src="https://i.imgur.com/RHlSHqk.jpeg" alt="Sports X Arena"></div>
+      <div class="gallery-slide"><img src="https://i.imgur.com/ESjzCrm.jpeg" alt="Sports X Arena"></div>
+      <div class="gallery-slide"><img src="https://i.imgur.com/FkWZVGY.jpeg" alt="Sports X Arena"></div>
+    </div>
+    <!-- Prev / Next -->
+    <button class="gallery-arrow gallery-prev" onclick="galleryMove(-1)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="gallery-arrow gallery-next" onclick="galleryMove(1)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+    <!-- Dots -->
+    <div class="gallery-dots" id="gallery-dots">
+      <span class="gallery-dot active" onclick="galleryGo(0)"></span>
+      <span class="gallery-dot" onclick="galleryGo(1)"></span>
+      <span class="gallery-dot" onclick="galleryGo(2)"></span>
+      <span class="gallery-dot" onclick="galleryGo(3)"></span>
+      <span class="gallery-dot" onclick="galleryGo(4)"></span>
+    </div>
+    <!-- Counter -->
+    <div class="gallery-counter" id="gallery-counter">1 / 5</div>
+  </div>
+  <!-- Thumbnails -->
+  <div class="gallery-thumbs" id="gallery-thumbs">
+    <div class="gallery-thumb active" onclick="galleryGo(0)" style="background-image:url('https://i.imgur.com/eYHanUg.jpeg')"></div>
+    <div class="gallery-thumb" onclick="galleryGo(1)" style="background-image:url('https://i.imgur.com/9FVtoM2.jpeg')"></div>
+    <div class="gallery-thumb" onclick="galleryGo(2)" style="background-image:url('https://i.imgur.com/RHlSHqk.jpeg')"></div>
+    <div class="gallery-thumb" onclick="galleryGo(3)" style="background-image:url('https://i.imgur.com/ESjzCrm.jpeg')"></div>
+    <div class="gallery-thumb" onclick="galleryGo(4)" style="background-image:url('https://i.imgur.com/FkWZVGY.jpeg')"></div>
+  </div>
+  <!-- Auto-play toggle -->
+  <div class="gallery-controls">
+    <button class="gallery-play-btn" id="gallery-play-btn" onclick="galleryTogglePlay()">⏸ Pause Slideshow</button>
+  </div>
+</div>
+
+
 <nav class="bottom-nav" id="bottom-nav" style="display:none">
   <button id="nav-home" onclick="showScreen('landing')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12L12 3l9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1352,6 +1526,10 @@ body.dark .skeleton {
   <button id="nav-book" onclick="showScreen('home','book')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
     Book
+  </button>
+  <button id="nav-gallery" onclick="showScreen('gallery','gallery')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Gallery
   </button>
   <button id="nav-location" onclick="showScreen('location','location')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21C12 21 5 14 5 9a7 7 0 1114 0c0 5-7 12-7 12z" stroke-linecap="round"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -1549,7 +1727,7 @@ function showScreen(id, nav) {
   document.getElementById('screen-' + id).classList.add('active');
   if (id === 'landing') updateLandingButtons();
 
-  const hasNav = ['home','booking','confirm','location','account'].includes(id);
+  const hasNav = ['home','booking','confirm','location','account','gallery'].includes(id);
   document.getElementById('bottom-nav').style.display = hasNav ? 'flex' : 'none';
 
   if (id === 'account') {
@@ -2269,6 +2447,100 @@ function toast(msg, isErr=false) {
     }
   }
 })();
+
+// ============ GALLERY ============
+let galleryIndex = 0;
+let galleryPlaying = true;
+let galleryTimer = null;
+const GALLERY_TOTAL = 5;
+const GALLERY_INTERVAL = 4000;
+
+function galleryGo(idx, direction) {
+  const slides = document.querySelectorAll('.gallery-slide');
+  const dots   = document.querySelectorAll('.gallery-dot');
+  const thumbs = document.querySelectorAll('.gallery-thumb');
+  const counter = document.getElementById('gallery-counter');
+
+  const prev = galleryIndex;
+  galleryIndex = ((idx % GALLERY_TOTAL) + GALLERY_TOTAL) % GALLERY_TOTAL;
+
+  if (prev === galleryIndex) return;
+
+  // Fade out previous
+  slides[prev].classList.remove('active');
+  slides[prev].classList.add('exit-prev');
+  setTimeout(() => slides[prev].classList.remove('exit-prev'), 900);
+
+  // Fade in new
+  slides[galleryIndex].classList.add('active');
+
+  dots.forEach((d,i)  => d.classList.toggle('active', i === galleryIndex));
+  thumbs.forEach((t,i)=> t.classList.toggle('active', i === galleryIndex));
+  if (counter) counter.textContent = (galleryIndex + 1) + ' / ' + GALLERY_TOTAL;
+
+  // Scroll active thumb into view
+  const activeThumb = thumbs[galleryIndex];
+  if (activeThumb) activeThumb.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+}
+
+function galleryMove(dir) {
+  galleryGo(galleryIndex + dir, dir);
+  if (galleryPlaying) galleryResetTimer();
+}
+
+function galleryResetTimer() {
+  clearInterval(galleryTimer);
+  if (galleryPlaying) galleryTimer = setInterval(() => galleryMove(1), GALLERY_INTERVAL);
+}
+
+function galleryTogglePlay() {
+  galleryPlaying = !galleryPlaying;
+  const btn = document.getElementById('gallery-play-btn');
+  if (galleryPlaying) {
+    galleryResetTimer();
+    if (btn) btn.textContent = '⏸ Pause Slideshow';
+  } else {
+    clearInterval(galleryTimer);
+    if (btn) btn.textContent = '▶ Play Slideshow';
+  }
+}
+
+// Start slideshow when gallery screen becomes active
+const _origShowScreen = showScreen;
+showScreen = function(id, nav) {
+  _origShowScreen(id, nav);
+  if (id === 'gallery') {
+    // Reset to first slide
+    galleryIndex = 0;
+    document.querySelectorAll('.gallery-slide').forEach((s,i) => {
+      s.classList.remove('active','exit-prev');
+      if (i === 0) s.classList.add('active');
+    });
+    document.querySelectorAll('.gallery-dot').forEach((d,i)   => d.classList.toggle('active', i===0));
+    document.querySelectorAll('.gallery-thumb').forEach((t,i) => t.classList.toggle('active', i===0));
+    const c = document.getElementById('gallery-counter');
+    if (c) c.textContent = '1 / ' + GALLERY_TOTAL;
+    galleryPlaying = true;
+    const pb = document.getElementById('gallery-play-btn');
+    if (pb) pb.textContent = '⏸ Pause Slideshow';
+    galleryResetTimer();
+  } else {
+    clearInterval(galleryTimer);
+  }
+};
+
+// Swipe support on gallery stage
+(function() {
+  let tx = 0;
+  const stage = document.getElementById('gallery-stage');
+  if (!stage) return;
+  stage.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive:true });
+  stage.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 40) galleryMove(dx < 0 ? 1 : -1);
+  });
+})();
+
 </script>
 </body>
 </html>
