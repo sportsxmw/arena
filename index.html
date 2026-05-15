@@ -50,13 +50,27 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 
 /* ── LANDING ── */
 #screen-landing {
-  background: url('https://i.imgur.com/BoQY79J.jpeg') center/cover no-repeat;
+  background: #000;
   position: relative; align-items: center; justify-content: center;
 }
 #screen-landing::before {
   content:''; position:absolute; inset:0;
   background: linear-gradient(160deg, rgba(0,0,0,0.3) 0%, rgba(140,0,0,0.45) 50%, rgba(0,0,0,0.75) 100%);
+  z-index: 1;
 }
+#landing-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center; z-index: 0;
+}
+.unmute-btn {
+  position: absolute; top: 18px; right: 18px; z-index: 5;
+  background: rgba(0,0,0,0.45); border: 1.5px solid rgba(255,255,255,0.3);
+  color: #fff; border-radius: 50px; padding: 7px 16px;
+  font-size: 13px; font-weight: 700; font-family: var(--font-b);
+  cursor: pointer; backdrop-filter: blur(6px); transition: background 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.unmute-btn:hover { background: rgba(204,0,0,0.55); }
 .landing-content { position:relative; z-index:1; text-align:center; padding:48px 24px; width:100%; max-width:520px; display:flex; flex-direction:column; align-items:center; }
 
 /* SX monogram badge */
@@ -272,6 +286,8 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .slot-card:hover:not(.booked) { transform:translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
 .slot-card:active:not(.booked) { transform:translateY(0); }
 .slot-card.morning { background: linear-gradient(145deg, #e00000, #aa0000); }
+.slot-card.ladies  { background: linear-gradient(145deg, #c2185b, #880e4f); }
+.slot-card.gents   { background: linear-gradient(145deg, #1565c0, #0d47a1); }
 .slot-card.evening { background: linear-gradient(145deg, #1a2035, #0c1020); }
 .slot-card.booked { background:#e8e8e8 !important; cursor:not-allowed; box-shadow:none; }
 .slot-card.mine-booked { outline:3px solid rgba(245,158,11,0.6); }
@@ -965,6 +981,11 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
 
 <!-- LANDING -->
 <div class="screen active" id="screen-landing">
+  <video id="landing-video" src="https://res.cloudinary.com/dfbherdd5/video/upload/q_auto:best,h_720,c_scale/v1778872225/WhatsApp_Video_2026-05-15_at_8.33.03_PM_h5hl6h.mp4"
+    autoplay loop muted playsinline preload="auto"></video>
+  <button class="unmute-btn" id="unmute-btn" onclick="toggleMute()">
+    <span id="unmute-icon">🔇</span> <span id="unmute-label">Tap for Sound</span>
+  </button>
   <div class="landing-content">
     <div class="brand-badge"><span>SX</span></div>
     <div class="landing-tagline">Padel Courts · Blantyre</div>
@@ -1479,8 +1500,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
   </div>
   <div class="gallery-stage" id="gallery-stage">
     <div class="gallery-slides" id="gallery-slides">
-      <div class="gallery-slide active"><img src="https://i.imgur.com/eYHanUg.jpeg" alt="Sports X Arena"></div>
-      <div class="gallery-slide"><img src="https://i.imgur.com/9FVtoM2.jpeg" alt="Sports X Arena"></div>
+      <div class="gallery-slide active"><img src="https://i.imgur.com/9FVtoM2.jpeg" alt="Sports X Arena"></div>
       <div class="gallery-slide"><img src="https://i.imgur.com/RHlSHqk.jpeg" alt="Sports X Arena"></div>
       <div class="gallery-slide"><img src="https://i.imgur.com/ESjzCrm.jpeg" alt="Sports X Arena"></div>
       <div class="gallery-slide"><img src="https://i.imgur.com/FkWZVGY.jpeg" alt="Sports X Arena"></div>
@@ -1505,11 +1525,10 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
   </div>
   <!-- Thumbnails -->
   <div class="gallery-thumbs" id="gallery-thumbs">
-    <div class="gallery-thumb active" onclick="galleryGo(0)" style="background-image:url('https://i.imgur.com/eYHanUg.jpeg')"></div>
-    <div class="gallery-thumb" onclick="galleryGo(1)" style="background-image:url('https://i.imgur.com/9FVtoM2.jpeg')"></div>
-    <div class="gallery-thumb" onclick="galleryGo(2)" style="background-image:url('https://i.imgur.com/RHlSHqk.jpeg')"></div>
-    <div class="gallery-thumb" onclick="galleryGo(3)" style="background-image:url('https://i.imgur.com/ESjzCrm.jpeg')"></div>
-    <div class="gallery-thumb" onclick="galleryGo(4)" style="background-image:url('https://i.imgur.com/FkWZVGY.jpeg')"></div>
+    <div class="gallery-thumb active" onclick="galleryGo(0)" style="background-image:url('https://i.imgur.com/9FVtoM2.jpeg')"></div>
+    <div class="gallery-thumb" onclick="galleryGo(1)" style="background-image:url('https://i.imgur.com/RHlSHqk.jpeg')"></div>
+    <div class="gallery-thumb" onclick="galleryGo(2)" style="background-image:url('https://i.imgur.com/ESjzCrm.jpeg')"></div>
+    <div class="gallery-thumb" onclick="galleryGo(3)" style="background-image:url('https://i.imgur.com/FkWZVGY.jpeg')"></div>
   </div>
   <!-- Auto-play toggle -->
   <div class="gallery-controls">
@@ -1698,23 +1717,27 @@ let selectedSlot  = null;
 let pendingDate   = null;
 let pendingAvatar = null; // temp avatar data URL while editing
 
-const MORNING = [
-  { time:'6:15 – 7:15 AM',       price:60000, duration:'1 Hour'    },
-  { time:'7:15 – 8:15 AM',       price:60000, duration:'1 Hour'    },
-  { time:'8:15 – 9:15 AM',       price:60000, duration:'1 Hour'    },
-  { time:'9:15 – 10:15 AM',      price:60000, duration:'1 Hour'    },
-  { time:'10:15 – 11:15 AM',     price:60000, duration:'1 Hour'    },
-  { time:'11:15 AM – 12:15 PM',  price:60000, duration:'1 Hour'    },
-  { time:'1:15 – 2:15 PM',       price:60000, duration:'1 Hour'    },
-  { time:'2:15 – 3:15 PM',       price:60000, duration:'1 Hour'    },
+const LADIES = [
+  { time:'6:15 – 7:15 AM',      price:60000, duration:'1 Hour',    session:'Ladies' },
+  { time:'7:15 – 8:15 AM',      price:60000, duration:'1 Hour',    session:'Ladies' },
+  { time:'8:15 – 9:15 AM',      price:60000, duration:'1 Hour',    session:'Ladies' },
+  { time:'9:15 – 10:15 AM',     price:60000, duration:'1 Hour',    session:'Ladies' },
+  { time:'10:15 – 11:15 AM',    price:60000, duration:'1 Hour',    session:'Ladies' },
+  { time:'11:15 AM – 12:15 PM', price:60000, duration:'1 Hour',    session:'Ladies' },
+  { time:'12:15 – 1:00 PM',     price:60000, duration:'45 Min',    session:'Ladies' },
 ];
-const EVENING = [
-  { time:'4:00 – 5:30 PM',   price:75000, duration:'1.5 Hours' },
-  { time:'5:30 – 7:00 PM',   price:75000, duration:'1.5 Hours' },
-  { time:'7:00 – 8:30 PM',   price:75000, duration:'1.5 Hours' },
-  { time:'8:30 – 10:00 PM',  price:75000, duration:'1.5 Hours' },
-  { time:'10:00 – 11:30 PM', price:75000, duration:'1.5 Hours' },
+const GENTS = [
+  { time:'1:00 – 2:00 PM',      price:60000, duration:'1 Hour',    session:'Gents' },
+  { time:'2:00 – 3:00 PM',      price:60000, duration:'1 Hour',    session:'Gents' },
+  { time:'3:00 – 4:00 PM',      price:60000, duration:'1 Hour',    session:'Gents' },
+  { time:'4:00 – 5:30 PM',      price:75000, duration:'1.5 Hours', session:'Gents' },
+  { time:'5:30 – 7:00 PM',      price:75000, duration:'1.5 Hours', session:'Gents' },
+  { time:'7:00 – 8:30 PM',      price:75000, duration:'1.5 Hours', session:'Gents' },
+  { time:'8:30 – 10:00 PM',     price:75000, duration:'1.5 Hours', session:'Gents' },
+  { time:'10:00 – 11:30 PM',    price:75000, duration:'1.5 Hours', session:'Gents' },
+  { time:'11:30 PM – 12:00 AM', price:75000, duration:'30 Min',    session:'Gents' },
 ];
+const EVENING = [];
 
 // ============ NAV ============
 function showScreen(id, nav) {
@@ -1816,7 +1839,7 @@ function openBooking(court) {
   selectedCourt = court;
   document.getElementById('booking-court-title').textContent = court;
   const today = new Date();
-  const maxD  = new Date(today); maxD.setMonth(maxD.getMonth() + 6);
+  const maxD  = new Date('2026-12-31');
   const toStr = d => d.toISOString().split('T')[0];
   const dateEl = document.getElementById('booking-date');
   dateEl.value = toStr(today);
@@ -1826,16 +1849,45 @@ function openBooking(court) {
   showScreen('booking','book');
 }
 
+// ============ HARDCODED BLOCKED SLOTS ============
+function isHardBlocked(court, dateVal, slotTime) {
+  const t1 = GENTS[4].time; // 5:30 – 7:00 PM
+  const t2 = GENTS[5].time; // 7:00 – 8:30 PM
+  const t3 = GENTS[6].time; // 8:30 – 10:00 PM
+
+  // Rule 1 — Court 1: Mon/Wed/Thu 5:30–7:00 PM, 18 May–31 Jul 2026
+  const R1_DATES = new Set(['2026-05-18','2026-05-20','2026-05-21','2026-05-25','2026-05-27','2026-05-28','2026-06-01','2026-06-03','2026-06-04','2026-06-08','2026-06-10','2026-06-11','2026-06-15','2026-06-17','2026-06-18','2026-06-22','2026-06-24','2026-06-25','2026-06-29','2026-07-01','2026-07-02','2026-07-06','2026-07-08','2026-07-09','2026-07-13','2026-07-15','2026-07-16','2026-07-20','2026-07-22','2026-07-23','2026-07-27','2026-07-29','2026-07-30']);
+  if (court === 'Padel Court 1' && slotTime === t1 && R1_DATES.has(dateVal)) return true;
+
+  // Rule 2 — Court 1: Wed 8:30–10:00 PM, June 2026
+  const R2_DATES = new Set(['2026-06-03','2026-06-10','2026-06-17','2026-06-24']);
+  if (court === 'Padel Court 1' && slotTime === t3 && R2_DATES.has(dateVal)) return true;
+
+  // Rule 3 — Court 1: Mon/Wed/Thu 8:30–10:00 PM, 18 May–31 Dec 2026
+  const R3_DATES = new Set(['2026-05-18','2026-05-20','2026-05-21','2026-05-25','2026-05-27','2026-05-28','2026-06-01','2026-06-03','2026-06-04','2026-06-08','2026-06-10','2026-06-11','2026-06-15','2026-06-17','2026-06-18','2026-06-22','2026-06-24','2026-06-25','2026-06-29','2026-07-01','2026-07-02','2026-07-06','2026-07-08','2026-07-09','2026-07-13','2026-07-15','2026-07-16','2026-07-20','2026-07-22','2026-07-23','2026-07-27','2026-07-29','2026-07-30','2026-08-03','2026-08-05','2026-08-06','2026-08-10','2026-08-12','2026-08-13','2026-08-17','2026-08-19','2026-08-20','2026-08-24','2026-08-26','2026-08-27','2026-08-31','2026-09-02','2026-09-03','2026-09-07','2026-09-09','2026-09-10','2026-09-14','2026-09-16','2026-09-17','2026-09-21','2026-09-23','2026-09-24','2026-09-28','2026-09-30','2026-10-01','2026-10-05','2026-10-07','2026-10-08','2026-10-12','2026-10-14','2026-10-15','2026-10-19','2026-10-21','2026-10-22','2026-10-26','2026-10-28','2026-10-29','2026-11-02','2026-11-04','2026-11-05','2026-11-09','2026-11-11','2026-11-12','2026-11-16','2026-11-18','2026-11-19','2026-11-23','2026-11-25','2026-11-26','2026-11-30','2026-12-02','2026-12-03','2026-12-07','2026-12-09','2026-12-10','2026-12-14','2026-12-16','2026-12-17','2026-12-21','2026-12-23','2026-12-24','2026-12-28','2026-12-30','2026-12-31']);
+  if (court === 'Padel Court 1' && slotTime === t3 && R3_DATES.has(dateVal)) return true;
+
+  // Rule 4 — Both Courts: Mon/Thu 8:30–10:00 PM, 18 May–31 Dec 2026
+  const R4_DATES = new Set(['2026-05-18','2026-05-21','2026-05-25','2026-05-28','2026-06-01','2026-06-04','2026-06-08','2026-06-11','2026-06-15','2026-06-18','2026-06-22','2026-06-25','2026-06-29','2026-07-02','2026-07-06','2026-07-09','2026-07-13','2026-07-16','2026-07-20','2026-07-23','2026-07-27','2026-07-30','2026-08-03','2026-08-06','2026-08-10','2026-08-13','2026-08-17','2026-08-20','2026-08-24','2026-08-27','2026-08-31','2026-09-03','2026-09-07','2026-09-10','2026-09-14','2026-09-17','2026-09-21','2026-09-24','2026-09-28','2026-10-01','2026-10-05','2026-10-08','2026-10-12','2026-10-15','2026-10-19','2026-10-22','2026-10-26','2026-10-29','2026-11-02','2026-11-05','2026-11-09','2026-11-12','2026-11-16','2026-11-19','2026-11-23','2026-11-26','2026-11-30','2026-12-03','2026-12-07','2026-12-10','2026-12-14','2026-12-17','2026-12-21','2026-12-24','2026-12-28','2026-12-31']);
+  if (['Padel Court 1','Padel Court 2'].includes(court) && slotTime === t3 && R4_DATES.has(dateVal)) return true;
+
+  // Rule 5 — Court 1: Mon 7:00–8:30 PM, 18 May–31 Dec 2026
+  const R5_DATES = new Set(['2026-05-18','2026-05-25','2026-06-01','2026-06-08','2026-06-15','2026-06-22','2026-06-29','2026-07-06','2026-07-13','2026-07-20','2026-07-27','2026-08-03','2026-08-10','2026-08-17','2026-08-24','2026-08-31','2026-09-07','2026-09-14','2026-09-21','2026-09-28','2026-10-05','2026-10-12','2026-10-19','2026-10-26','2026-11-02','2026-11-09','2026-11-16','2026-11-23','2026-11-30','2026-12-07','2026-12-14','2026-12-21','2026-12-28']);
+  if (court === 'Padel Court 1' && slotTime === t2 && R5_DATES.has(dateVal)) return true;
+
+  return false;
+}
+
 async function renderSlots() {
   const container = document.getElementById('slots-container');
   const dateVal   = document.getElementById('booking-date').value;
 
-  // Enforce 6-month booking limit
+  // Enforce December 2026 booking limit
   const today  = new Date(); today.setHours(0,0,0,0);
-  const maxD   = new Date(today); maxD.setMonth(maxD.getMonth() + 6);
+  const maxD   = new Date('2026-12-31');
   const picked = new Date(dateVal + 'T00:00:00');
   if (picked > maxD) {
-    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Bookings are only available up to 6 months in advance.</div>';
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Bookings are only available up to December 2026.</div>';
     return;
   }
   if (picked < today) {
@@ -1875,9 +1927,10 @@ async function renderSlots() {
     lbl.innerHTML = `${emoji} ${label} · MWK ${basePrice.toLocaleString()}`;
     const grid = document.createElement('div'); grid.className = 'slots-grid';
     slots.forEach(slot => {
-      const existing   = liveBookings.find(b => b.time===slot.time);
-      const isBooked   = !!existing;
-      const isMine     = isBooked && CU && existing.userEmail === CU.email;
+      const existing     = liveBookings.find(b => b.time===slot.time);
+      const isHardBlock  = isHardBlocked(selectedCourt, dateVal, slot.time);
+      const isBooked     = !!existing || isHardBlock;
+      const isMine       = !isHardBlock && !!existing && CU && existing.userEmail === CU.email;
       const card       = document.createElement('button');
       card.className   = `slot-card ${session}${isBooked ? ' booked' : ''}${isMine ? ' mine-booked' : ''}`;
       card.innerHTML   = `
@@ -1898,12 +1951,13 @@ async function renderSlots() {
     return sec;
   };
 
-  container.appendChild(makeSection(MORNING,'morning','☀️','Morning',60000));
-  container.appendChild(makeSection(EVENING,'evening','🌙','Evening',75000));
+  container.appendChild(makeSection(LADIES, 'ladies', '👩','Ladies Only (Morning · Until 1:00 PM)', 60000));
+  container.appendChild(makeSection(GENTS,  'gents',  '👨','Gents (1:00 PM – Midnight)', 60000));
 }
 
 function selectSlot(slot, dateVal) {
   if (!CU) { if(confirm('Sign in to book a slot. Go to Sign In?')) showScreen('login'); return; }
+  if (isHardBlocked(selectedCourt, dateVal, slot.time)) { toast('This slot is unavailable.', true); return; }
 
   // Prevent same user booking same slot/court/date twice
   const dup = DB.bookings().find(b => b.court===selectedCourt && b.date.startsWith(dateVal) && b.time===slot.time && b.userEmail===CU.email);
@@ -1967,6 +2021,7 @@ async function confirmBooking() {
     time:       selectedSlot.time,
     price:      selectedSlot.price,
     duration:   selectedSlot.duration,
+    session:    selectedSlot.session || '',
     user_email: CU.email,
     user_name:  CU.name
   };
@@ -1983,7 +2038,7 @@ async function confirmBooking() {
   // Also save locally so UI stays in sync
   const bookedAt = new Date().toISOString();
   const all = DB.bookings();
-  all.push({ court:booking.court, date:booking.date, time:booking.time, price:booking.price, duration:booking.duration, userEmail:CU.email, bookedAt });
+  all.push({ court:booking.court, date:booking.date, time:booking.time, price:booking.price, duration:booking.duration, session:booking.session, userEmail:CU.email, bookedAt });
   DB.saveBookings(all);
 
   toast('✓ Booking Confirmed!');
@@ -2408,11 +2463,10 @@ function toast(msg, isErr=false) {
   observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
 })();
 
-// Init — restrict booking date to today and up to 6 months ahead
+// Init — restrict booking date to today through December 2026
 (function() {
   const today = new Date();
-  const maxD  = new Date(today);
-  maxD.setMonth(maxD.getMonth() + 6);
+  const maxD  = new Date('2026-12-31');
   const toStr = d => d.toISOString().split('T')[0];
   const dateEl = document.getElementById('booking-date');
   dateEl.value = toStr(today);
@@ -2448,11 +2502,26 @@ function toast(msg, isErr=false) {
   }
 })();
 
+// ============ LANDING VIDEO MUTE TOGGLE ============
+function toggleMute() {
+  const video = document.getElementById('landing-video');
+  const icon  = document.getElementById('unmute-icon');
+  const label = document.getElementById('unmute-label');
+  video.muted = !video.muted;
+  if (video.muted) {
+    icon.textContent  = '🔇';
+    label.textContent = 'Tap for Sound';
+  } else {
+    icon.textContent  = '🔊';
+    label.textContent = 'Sound On';
+  }
+}
+
 // ============ GALLERY ============
 let galleryIndex = 0;
 let galleryPlaying = true;
 let galleryTimer = null;
-const GALLERY_TOTAL = 5;
+const GALLERY_TOTAL = 4;
 const GALLERY_INTERVAL = 4000;
 
 function galleryGo(idx, direction) {
