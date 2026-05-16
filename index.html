@@ -35,12 +35,12 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
   flex: 1; background: none; border: none; cursor: pointer;
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 3px; font-family: var(--font-b);
-  font-size: 10px; font-weight: 600; color: #aaa; padding: 8px 0;
+  font-size: 11px; font-weight: 600; color: #aaa; padding: 8px 0;
   transition: color 0.2s; position: relative; letter-spacing: 0.3px;
 }
 .bottom-nav button::before {
   content: ''; position: absolute; top: 0; left: 25%; right: 25%;
-  height: 3px; border-radius: 0 0 4px 4px;
+  height: 4px; border-radius: 0 0 6px 6px;
   background: var(--red); transform: scaleX(0);
   transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
@@ -121,9 +121,30 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 }
 .btn-white:hover { background:#fff; transform:translateY(-1px); }
 
-/* ── AUTH ── */
+/* ── GENDER SELECTOR ── */
+.gender-wrap {
+  width: 100%; display: flex; gap: 10px;
+}
+.gender-opt {
+  flex: 1; position: relative;
+}
+.gender-opt input[type="radio"] { display: none; }
+.gender-opt label {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 10px; border-radius: 12px;
+  background: rgba(255,255,255,0.92); border: 2px solid transparent;
+  font-family: var(--font-d); font-size: 17px; font-weight: 700;
+  color: #555; cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1); letter-spacing: 0.3px;
+}
+.gender-opt label:hover { background: #fff; border-color: rgba(204,0,0,0.3); color: #333; }
+.gender-opt input:checked + label {
+  background: #fff; border-color: var(--red);
+  color: var(--red); box-shadow: 0 0 0 3px rgba(204,0,0,0.15);
+}
+.gender-opt .gender-icon { font-size: 20px; line-height: 1; }
 #screen-login, #screen-register {
-  background:url('https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=1400&q=80') center/cover no-repeat;
+  background:url('https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=1400&q=90') center/cover no-repeat;
   position:relative; align-items:center; justify-content:center;
 }
 #screen-login::before, #screen-register::before {
@@ -189,7 +210,7 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
   z-index:1;
 }
 .hero-img {
-  width:100%; height:240px; object-fit:cover; object-position:center 55%;
+  width:100%; height:280px; object-fit:cover; object-position:center 55%;
   display:block; filter:brightness(1.05) contrast(1.05) saturate(1.1);
 }
 .hero-badge {
@@ -246,13 +267,14 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .btn-book-sm:hover { transform:scale(1.04); }
 
 .find-map-btn {
-  margin:16px 14px 10px; background:#fff; color:#222;
-  border: 1.5px solid #e0e0e0; border-radius:var(--radius);
+  margin:16px 14px 10px; background:linear-gradient(135deg,#cc0000,#a80000); color:#fff;
+  border: none; border-radius:var(--radius);
   padding:17px; width:calc(100% - 28px); font-family:var(--font-d); font-size:17px; font-weight:700;
   cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
-  transition:all 0.2s; box-shadow: var(--shadow-sm);
+  transition:all 0.2s; box-shadow: 0 4px 18px rgba(204,0,0,0.35);
+  letter-spacing:0.5px;
 }
-.find-map-btn:hover { border-color:var(--red); color:var(--red); box-shadow: var(--shadow-md); }
+.find-map-btn:hover { transform:translateY(-2px); box-shadow: 0 8px 28px rgba(204,0,0,0.48); }
 
 /* ── BOOKING ── */
 #screen-booking { padding-bottom:70px; flex-direction:column; background:var(--bg); }
@@ -289,13 +311,15 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .slot-card.ladies  { background: linear-gradient(145deg, #c2185b, #880e4f); }
 .slot-card.gents   { background: linear-gradient(145deg, #1565c0, #0d47a1); }
 .slot-card.evening { background: linear-gradient(145deg, #1a2035, #0c1020); }
-.slot-card.booked { background:#e8e8e8 !important; cursor:not-allowed; box-shadow:none; }
+.slot-card.booked { background:#e2e2e2 !important; cursor:not-allowed; box-shadow:none; border:1.5px solid #d0d0d0 !important; opacity:0.75; }
 .slot-card.mine-booked { outline:3px solid rgba(245,158,11,0.6); }
 .slot-time { font-family:var(--font-d); font-size:12px; font-weight:800; color:#fff; line-height:1.2; }
 .slot-card.booked .slot-time { color:#aaa; }
 .slot-price { font-size:10px; color:rgba(255,255,255,0.75); font-weight:600; }
 .slot-card.booked .slot-price { color:#bbb; }
-.slot-status { font-size:10px; font-weight:700; color:var(--green); letter-spacing:0.3px; }
+.slot-label { font-size:9px; color:rgba(255,255,255,0.55); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.slot-card.booked .slot-label { color:#bbb; }
+.slot-status { font-size:10px; font-weight:800; color:#22c55e; letter-spacing:0.3px; text-shadow:0 1px 4px rgba(0,0,0,0.3); }
 .slot-card.booked .slot-status { color:#bbb; }
 .slot-card.mine-booked .slot-status { color:var(--amber) !important; }
 
@@ -494,11 +518,24 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 
 /* ── LOCATION ── */
 #screen-location { flex-direction:column; padding-bottom:70px; }
-.map-frame { width:100%; height:320px; border:none; display:block; }
+.map-frame { width:100%; height:420px; border:none; display:block; }
+.map-actions { display:flex; gap:10px; padding:14px 14px 0; }
+.map-action-btn {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; padding:14px 8px; border-radius:14px; border:none; cursor:pointer;
+  font-family:var(--font-b); font-size:12px; font-weight:700; letter-spacing:0.3px;
+  transition:all 0.18s; box-shadow:var(--shadow-sm);
+}
+.map-action-btn .mab-icon { font-size:22px; line-height:1; }
+.map-action-btn.red  { background:var(--red); color:#fff; box-shadow:0 4px 14px rgba(204,0,0,0.35); }
+.map-action-btn.red:hover  { background:var(--red-light); transform:translateY(-2px); }
+.map-action-btn.grey { background:#fff; color:#111; border:1.5px solid #ececec; }
+.map-action-btn.grey:hover { background:#f4f4f6; transform:translateY(-2px); }
 .loc-info { padding:20px 16px; background:#fff; margin:12px 14px; border-radius:var(--radius); box-shadow:var(--shadow-sm); border:1px solid #ececec; }
 .loc-name { font-family:var(--font-d); font-size:24px; font-weight:900; text-transform:uppercase; color:var(--red); margin-bottom:4px; letter-spacing:1px; }
 .loc-addr { color:#888; font-size:13px; line-height:1.5; margin-bottom:14px; }
-.contact-row { display:flex; gap:12px; align-items:center; padding:10px 0; font-size:14px; color:#333; border-bottom:1px solid #f4f4f4; font-weight:500; }
+.contact-row { display:flex; gap:12px; align-items:center; padding:10px 0; font-size:14px; color:#333; border-bottom:1px solid #f4f4f4; font-weight:500; cursor:pointer; transition:background 0.15s; border-radius:8px; }
+.contact-row:hover { background:#fafafa; }
 .contact-row:last-child { border-bottom:none; }
 .contact-icon { width:36px; height:36px; border-radius:10px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
 
@@ -605,12 +642,46 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 }
 
 /* ══════════════════════════════════════════
-   DARK MODE
+   DARK MODE TOGGLE PILL
+══════════════════════════════════════════ */
+.dark-toggle {
+  position: relative; width: 52px; height: 28px;
+  background: #d0d0d8; border: none; border-radius: 50px;
+  cursor: pointer; transition: background 0.35s;
+  flex-shrink: 0; padding: 0;
+}
+body.dark .dark-toggle { background: var(--red); }
+.dark-toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 1; box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+body.dark .dark-toggle-thumb { transform: translateX(24px); }
+
+/* ══════════════════════════════════════════
+   DARK MODE — SMOOTH TRANSITIONS
+══════════════════════════════════════════ */
+body, .page-hdr, .date-row, .acct-card, .sum-card, .pay-card,
+.pay-ref-row, .pay-done-wrap, .loc-info, .find-map-btn,
+.btn-signout, .modal-sheet, .pay-modal-sheet, .bottom-nav,
+.form-input, .bank-pick-btn, .pay-copy-btn, .pay-bank-detail-card,
+.acct-row, .slot-card, .confirm-hdr, .map-action-btn,
+.guest-screen, .contact-row, .section-title {
+  transition: background-color 0.28s ease, border-color 0.28s ease, color 0.22s ease;
+}
+
+/* ══════════════════════════════════════════
+   DARK MODE — STYLES
 ══════════════════════════════════════════ */
 body.dark {
   --bg: #0d0f16; --card: #151820;
-  background: var(--bg); color: #f0f0f0;
+  background: var(--bg); color: #e8e8f0;
 }
+
+/* ── Surfaces ── */
 body.dark .page-hdr,
 body.dark .date-row,
 body.dark .acct-card,
@@ -621,49 +692,108 @@ body.dark .pay-done-wrap,
 body.dark .loc-info,
 body.dark .find-map-btn,
 body.dark .btn-signout,
-body.dark .modal-sheet { background: #151820; border-color:#2a2d38; color:#f0f0f0; }
-body.dark .page-hdr h2,
+body.dark .modal-sheet,
+body.dark .pay-modal-sheet { background: #151820; border-color: #252836; }
+
+/* ── Date / booking row ── */
+body.dark .date-row { border-color: #252836; }
+body.dark .date-row label { color: #666; }
+body.dark .date-row input[type="date"] {
+  background: #1c1f2a; border-color: #2a2d38; color: #e8e8f0; color-scheme: dark;
+}
+
+/* ── Session section ── */
+body.dark .session-label { color: #555; }
+body.dark .session-label span.sl-pill { background: #1c1f2a; color: #777; }
+
+/* ── Slot cards (booked) ── */
+body.dark .slot-card.booked { background: #1a1c28 !important; cursor: not-allowed; box-shadow: none; }
+body.dark .slot-card.booked .slot-time,
+body.dark .slot-card.booked .slot-price,
+body.dark .slot-card.booked .slot-status { color: #3a3d50; }
+
+/* ── Confirm screen ── */
+body.dark .confirm-hdr { background: #151820; border-color: #252836; }
+body.dark .confirm-hdr h2 { color: #e8e8f0; }
+body.dark .sum-title,
+body.dark .pay-section-label { color: #555; }
+body.dark .pay-section-label::after { background: #252836; }
+body.dark .sum-row { border-color: #252836; }
+body.dark .sum-row .sl,
+body.dark .pay-row .pl,
+body.dark .pbd-l,
+body.dark .pay-ref-label { color: #666; }
 body.dark .sum-row .sv,
 body.dark .pay-row .pv,
 body.dark .pbd-v,
 body.dark .bpb-name,
-body.dark .modal-title { color:#f0f0f0; }
-body.dark .sum-row .sl,
-body.dark .pay-row .pl,
-body.dark .pbd-l { color:#888; }
-body.dark .acct-row { border-color:#2a2d38; }
-body.dark .acct-row:hover { background:#1c1f2a; }
-body.dark .acct-row .rl { color:#ddd; }
-body.dark .section-title { color:#666; }
-body.dark .section-title::after { background:#2a2d38; }
-body.dark .bottom-nav { background:#151820; border-color:#2a2d38; }
-body.dark .bottom-nav button { color:#555; }
-body.dark .bottom-nav button.active { color:var(--red); }
-body.dark .slot-card.booked { background:#1e2030 !important; }
-body.dark .slot-card.booked .slot-time,
-body.dark .slot-card.booked .slot-price,
-body.dark .slot-card.booked .slot-status { color:#444; }
-body.dark .form-input { background:#1c1f2a; border-color:#2a2d38; color:#f0f0f0; }
-body.dark .form-label { color:#aaa; }
-body.dark .pay-bank-detail-card { background:#1c1f2a; border-color:#2a2d38; }
-body.dark .bank-pick-btn { background:#1c1f2a; border-color:#2a2d38; }
-body.dark .pay-copy-btn { background:#1c1f2a; color:#ddd; }
-body.dark .modal-close { background:#2a2d38; color:#ccc; }
-body.dark .confirm-note { background:rgba(245,158,11,0.06); }
-body.dark .find-map-btn { color:#ccc; border-color:#2a2d38; }
-body.dark .find-map-btn:hover { color:var(--red); border-color:var(--red); }
-body.dark .btn-signout { color:#cc0000; border-color:#2a2d38; }
-body.dark .btn-signout:hover { background:#1c0a0a; }
+body.dark .modal-title,
+body.dark .page-hdr h2 { color: #e8e8f0; }
+body.dark .pay-row { border-color: #252836; }
+body.dark .confirm-note { background: rgba(245,158,11,0.07); color: #b88a30; border-color: rgba(245,158,11,0.15); }
 
-/* dark mode toggle button */
-.dark-toggle {
-  background: none; border: none; cursor: pointer;
-  width: 36px; height: 36px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; transition: transform 0.3s;
-  color: #888;
+/* ── Payment elements ── */
+body.dark .pay-bank-detail-card { background: #1c1f2a; border-color: #252836; }
+body.dark .pbd-row { border-color: #252836; }
+body.dark .bank-pick-btn { background: #1c1f2a; border-color: #252836; }
+body.dark .pay-copy-btn { background: #1c1f2a; color: #ccc; }
+body.dark .pay-dial-number { color: #e8e8f0; }
+body.dark .pay-step { color: #aaa; }
+body.dark .ps-num { background: #1c1f2a; }
+body.dark .pay-modal-body { background: #151820; }
+body.dark .pay-done-wrap.checked { background: rgba(34,197,94,0.06); }
+body.dark .pay-done-label { color: #aaa; }
+body.dark .pay-done-box { background: #1c1f2a; border-color: #3a3d50; }
+
+/* ── Location / map ── */
+body.dark .loc-addr { color: #888; }
+body.dark .contact-row { color: #aaa; border-color: #252836; }
+body.dark .contact-icon { background: #1c1f2a; }
+body.dark .map-action-btn.grey { background: #1c1f2a; color: #ccc; border-color: #252836; }
+body.dark .map-action-btn.grey:hover { background: #252836; }
+
+/* ── Account ── */
+body.dark #screen-account { background: var(--bg); }
+body.dark .acct-sec-title { color: #555; }
+body.dark .acct-row { border-color: #252836; }
+body.dark .acct-row:hover { background: #1c1f2a; }
+body.dark .acct-row .rl { color: #ccc; }
+body.dark .acct-row .ri { background: #1c1f2a; }
+body.dark .acct-row .ra { color: #3a3d50; }
+body.dark .btn-signout { color: var(--red); border-color: #252836; background: #151820; }
+body.dark .btn-signout:hover { background: #1c0a0a; border-color: var(--red); }
+body.dark .guest-screen { background: var(--bg); }
+
+/* ── Modals / forms ── */
+body.dark .form-input { background: #1c1f2a; border-color: #2a2d38; color: #e8e8f0; }
+body.dark .form-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(204,0,0,0.15); }
+body.dark .form-input:disabled, body.dark .form-input[readonly] { background: #13151e; color: #3a3d50; }
+body.dark .form-label { color: #666; }
+body.dark .modal-close { background: #252836; color: #aaa; }
+body.dark .modal-close:hover { background: #2a2d38; }
+body.dark .edit-av-circle { background: #1c1f2a; border-color: #2a2d38; }
+
+/* ── Dividers ── */
+body.dark .section-title { color: #555; }
+body.dark .section-title::after { background: #252836; }
+
+/* ── Bottom nav ── */
+body.dark .bottom-nav { background: #0f111a; border-color: #1e2130; box-shadow: 0 -4px 20px rgba(0,0,0,0.4); }
+body.dark .bottom-nav button { color: #444; }
+body.dark .bottom-nav button.active { color: var(--red); }
+
+/* ── Skeleton loader ── */
+body.dark .skeleton {
+  background: linear-gradient(90deg, #1c1f2a 25%, #252836 50%, #1c1f2a 75%);
+  background-size: 400px 100%;
 }
-.dark-toggle:hover { transform: rotate(20deg); }
+
+/* ── Find map / misc ── */
+body.dark .find-map-btn { background: #151820; color: #aaa; border-color: #252836; }
+body.dark .find-map-btn:hover { color: var(--red); border-color: var(--red); }
+body.dark .pay-modal-sheet::before,
+body.dark .modal-sheet::before { background: rgba(255,255,255,0.12); }
+body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130; }
 
 /* ══════════════════════════════════════════
    LANDING ENTRANCE ANIMATIONS
@@ -966,6 +1096,11 @@ body.dark .skeleton {
 /* Gallery facility card accent */
 .gallery-card { background: linear-gradient(145deg, #1a1a2e, #16213e) !important; box-shadow: 0 4px 16px rgba(26,26,46,0.5) !important; }
 .gallery-card:hover { box-shadow: 0 8px 28px rgba(26,26,46,0.7) !important; }
+.gallery-card .btn-book-sm { background: #a78bfa; color: #fff; }
+/* Gym card */
+.gym-card { background: linear-gradient(145deg, #064e3b, #065f46) !important; box-shadow: 0 4px 16px rgba(6,78,59,0.45) !important; }
+.gym-card:hover { box-shadow: 0 8px 28px rgba(6,78,59,0.65) !important; }
+.gym-card .btn-book-sm { background: #34d399; color: #064e3b; }
 
 /* Dark mode gallery */
 body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130; }
@@ -1019,6 +1154,16 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     <input class="auth-input" type="text" id="reg-name" placeholder="Full Name">
     <input class="auth-input" type="email" id="reg-email" placeholder="Email Address">
     <input class="auth-input" type="tel" id="reg-phone" placeholder="Phone Number">
+    <div class="gender-wrap">
+      <div class="gender-opt">
+        <input type="radio" name="reg-gender" id="gender-male" value="Male">
+        <label for="gender-male"><span class="gender-icon">♂️</span> Male</label>
+      </div>
+      <div class="gender-opt">
+        <input type="radio" name="reg-gender" id="gender-female" value="Female">
+        <label for="gender-female"><span class="gender-icon">♀️</span> Female</label>
+      </div>
+    </div>
     <div class="pw-wrap"><input class="auth-input" type="password" id="reg-pass" placeholder="Password (min 6 chars)"><button type="button" class="eye-btn" onclick="togglePw('reg-pass',this)" tabindex="-1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
     <div class="pw-wrap"><input class="auth-input" type="password" id="reg-pass2" placeholder="Confirm Password"><button type="button" class="eye-btn" onclick="togglePw('reg-pass2',this)" tabindex="-1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
     <button class="btn-red" style="width:100%" onclick="doRegister()">Create Account</button>
@@ -1032,7 +1177,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
   <div class="page-hdr">
     <div style="width:30px"></div>
     <h2>Sports X Arena</h2>
-    <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+    <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDark()" title="Toggle dark mode" aria-label="Toggle dark mode"><span class="dark-toggle-thumb" id="dark-toggle-thumb">🌙</span></button>
   </div>
   <div class="hero-wrap">
     <div class="hero-badge">📍 Blantyre, Malawi</div>
@@ -1086,7 +1231,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
         <button class="btn-book-sm" onclick="event.stopPropagation();showScreen('gallery')">View</button>
       </div>
     </div>
-    <div class="facility-card" onclick="window.open('https://www.sportsxmw.com','_blank')">
+    <div class="facility-card gym-card" onclick="window.open('https://www.sportsxmw.com','_blank')">
       <div class="facility-card-inner">
         <div class="facility-left">
           <div class="facility-icon">
@@ -1431,15 +1576,34 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     <h2>Find Us</h2>
     <div style="width:30px"></div>
   </div>
+
+  <!-- Interactive Google Maps embed with satellite/map toggle support -->
   <iframe class="map-frame"
-    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1827.5!2d35.0644551!3d-15.8103331!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18d84ffa91bad835%3A0x900ffd6409db0840!2sPEP+Stores!5e0!3m2!1sen!2smw!4v1716000000000"
-    allowfullscreen loading="lazy"></iframe>
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3827.5!2d35.0644551!3d-15.8103331!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18d84ffa91bad835%3A0x900ffd6409db0840!2sSports%20X%20Arena%2C%20Blantyre%2C%20Malawi!5e0!3m2!1sen!2smw!4v1716000000000!5m2!1sen!2smw"
+    allowfullscreen allow="geolocation" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+  <!-- Quick-action buttons -->
+  <div class="map-actions">
+    <button class="map-action-btn red" onclick="openDirections()">
+      <span class="mab-icon">🗺️</span>Directions
+    </button>
+    <button class="map-action-btn grey" onclick="window.location.href='tel:+265999000000'">
+      <span class="mab-icon">📞</span>Call Us
+    </button>
+    <button class="map-action-btn grey" onclick="shareLocation()">
+      <span class="mab-icon">📤</span>Share
+    </button>
+    <button class="map-action-btn grey" onclick="openInMaps()">
+      <span class="mab-icon">📍</span>Open Map
+    </button>
+  </div>
+
   <div class="loc-info">
     <div class="loc-name">Sports X Arena</div>
-    <div class="loc-addr">Blantyre, Malawi</div>
+    <div class="loc-addr">Blantyre, Malawi<br>Near PEP Stores, City Centre</div>
     <div style="margin-top:14px">
-      <div class="contact-row"><div class="contact-icon">📞</div>+265 999 000 000</div>
-      <div class="contact-row"><div class="contact-icon">📧</div>info@sportsxarena.com</div>
+      <div class="contact-row" onclick="window.location.href='tel:+265999000000'"><div class="contact-icon">📞</div>+265 999 000 000</div>
+      <div class="contact-row" onclick="window.location.href='mailto:info@sportsxarena.com'"><div class="contact-icon">📧</div>info@sportsxarena.com</div>
       <div class="contact-row"><div class="contact-icon">🕐</div>Mon–Sun: 6:00 AM – 11:30 PM</div>
     </div>
   </div>
@@ -1669,7 +1833,7 @@ async function supaDelete(court, date, time) {
 
 // ============ SUPABASE USER FUNCTIONS ============
 async function supaGetUser(email) {
-  const url = SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email) + '&select=email,name,phone,password,avatar';
+  const url = SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email) + '&select=email,name,phone,password,avatar,gender';
   const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' } });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const rows = await res.json();
@@ -1717,25 +1881,28 @@ let selectedSlot  = null;
 let pendingDate   = null;
 let pendingAvatar = null; // temp avatar data URL while editing
 
+const MEN = [
+  { time:'6:15 – 7:15 AM', price:60000, duration:'1 Hour', session:'morning', label:'Men Only' },
+  { time:'7:15 – 8:15 AM', price:60000, duration:'1 Hour', session:'morning', label:'Men Only' },
+];
 const LADIES = [
-  { time:'6:15 – 7:15 AM',      price:60000, duration:'1 Hour',    session:'Ladies' },
-  { time:'7:15 – 8:15 AM',      price:60000, duration:'1 Hour',    session:'Ladies' },
-  { time:'8:15 – 9:15 AM',      price:60000, duration:'1 Hour',    session:'Ladies' },
-  { time:'9:15 – 10:15 AM',     price:60000, duration:'1 Hour',    session:'Ladies' },
-  { time:'10:15 – 11:15 AM',    price:60000, duration:'1 Hour',    session:'Ladies' },
-  { time:'11:15 AM – 12:15 PM', price:60000, duration:'1 Hour',    session:'Ladies' },
-  { time:'12:15 – 1:00 PM',     price:60000, duration:'45 Min',    session:'Ladies' },
+  { time:'8:15 – 9:15 AM',      price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+  { time:'9:15 – 10:15 AM',     price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+  { time:'10:15 – 11:15 AM',    price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+  { time:'11:15 AM – 12:15 PM', price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+];
+const MIXED_DAY = [
+  { time:'1:00 – 2:00 PM', price:60000, duration:'1 Hour', session:'gents', label:'Open to All' },
+  { time:'2:00 – 3:00 PM', price:60000, duration:'1 Hour', session:'gents', label:'Open to All' },
+  { time:'3:00 – 4:00 PM', price:60000, duration:'1 Hour', session:'gents', label:'Open to All' },
 ];
 const GENTS = [
-  { time:'1:00 – 2:00 PM',      price:60000, duration:'1 Hour',    session:'Gents' },
-  { time:'2:00 – 3:00 PM',      price:60000, duration:'1 Hour',    session:'Gents' },
-  { time:'3:00 – 4:00 PM',      price:60000, duration:'1 Hour',    session:'Gents' },
-  { time:'4:00 – 5:30 PM',      price:75000, duration:'1.5 Hours', session:'Gents' },
-  { time:'5:30 – 7:00 PM',      price:75000, duration:'1.5 Hours', session:'Gents' },
-  { time:'7:00 – 8:30 PM',      price:75000, duration:'1.5 Hours', session:'Gents' },
-  { time:'8:30 – 10:00 PM',     price:75000, duration:'1.5 Hours', session:'Gents' },
-  { time:'10:00 – 11:30 PM',    price:75000, duration:'1.5 Hours', session:'Gents' },
-  { time:'11:30 PM – 12:00 AM', price:75000, duration:'30 Min',    session:'Gents' },
+  { time:'4:00 – 5:30 PM',      price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
+  { time:'5:30 – 7:00 PM',      price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
+  { time:'7:00 – 8:30 PM',      price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
+  { time:'8:30 – 10:00 PM',     price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
+  { time:'10:00 – 11:30 PM',    price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
+  { time:'11:30 PM – 12:00 AM', price:75000, duration:'30 Min',    session:'evening', label:'Open to All' },
 ];
 const EVENING = [];
 
@@ -1783,10 +1950,10 @@ async function doLogin() {
     const user = await supaGetUser(email);
     if (!user)                  { toast('No account found with that email.', true); return; }
     if (user.password !== pass) { toast('Incorrect password.', true); return; }
-    CU = { email: user.email, name: user.name, phone: user.phone, avatar: user.avatar };
+    CU = { email: user.email, name: user.name, phone: user.phone, avatar: user.avatar, gender: user.gender };
     DB.saveSession(CU);
     // Keep local cache in sync
-    const users = DB.users(); users[email] = { name: CU.name, phone: CU.phone, password: pass, avatar: CU.avatar }; DB.saveUsers(users);
+    const users = DB.users(); users[email] = { name: CU.name, phone: CU.phone, password: pass, avatar: CU.avatar, gender: CU.gender }; DB.saveUsers(users);
     showScreen('home','home');
     toast('Welcome back, ' + CU.name.split(' ')[0] + '! 👋');
   } catch(e) {
@@ -1802,33 +1969,38 @@ async function doLogin() {
 }
 
 async function doRegister() {
-  const name  = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim().toLowerCase();
-  const phone = document.getElementById('reg-phone').value.trim();
-  const pass  = document.getElementById('reg-pass').value;
-  const pass2 = document.getElementById('reg-pass2').value;
+  const name   = document.getElementById('reg-name').value.trim();
+  const email  = document.getElementById('reg-email').value.trim().toLowerCase();
+  const phone  = document.getElementById('reg-phone').value.trim();
+  const pass   = document.getElementById('reg-pass').value;
+  const pass2  = document.getElementById('reg-pass2').value;
+  const genderEl = document.querySelector('input[name="reg-gender"]:checked');
+  const gender = genderEl ? genderEl.value : '';
   if (!name||!email||!pass)    { toast('Please fill all required fields.', true); return; }
+  if (!gender)                  { toast('Please select your gender.', true); return; }
   if (pass !== pass2)          { toast('Passwords do not match.', true); return; }
   if (pass.length < 6)         { toast('Password must be at least 6 characters.', true); return; }
   toast('Creating account…');
   try {
     const existing = await supaGetUser(email);
     if (existing) { toast('An account already exists for this email.', true); return; }
-    await supaCreateUser({ email, name, phone, password: pass, avatar: null });
+    await supaCreateUser({ email, name, phone, password: pass, avatar: null, gender });
     // Also save to local cache
-    const users = DB.users(); users[email] = { name, phone, password: pass, avatar: null }; DB.saveUsers(users);
-    toast('Account created! Please sign in.');
+    const users = DB.users(); users[email] = { name, phone, password: pass, avatar: null, gender }; DB.saveUsers(users);
+    toast('Account created! Welcome to Sports X Arena.');
     ['reg-name','reg-email','reg-phone','reg-pass','reg-pass2'].forEach(i => document.getElementById(i).value='');
-    showScreen('login');
+    document.querySelectorAll('input[name="reg-gender"]').forEach(r => r.checked = false);
+    showDisclaimer();
   } catch(e) {
     // Fallback to localStorage
     const users = DB.users();
     if (users[email]) { toast('An account already exists for this email.', true); return; }
-    users[email] = { name, phone, password: pass, avatar: null };
+    users[email] = { name, phone, password: pass, avatar: null, gender };
     DB.saveUsers(users);
-    toast('Account created! Please sign in.');
+    toast('Account created! Welcome to Sports X Arena.');
     ['reg-name','reg-email','reg-phone','reg-pass','reg-pass2'].forEach(i => document.getElementById(i).value='');
-    showScreen('login');
+    document.querySelectorAll('input[name="reg-gender"]').forEach(r => r.checked = false);
+    showDisclaimer();
   }
 }
 
@@ -1851,9 +2023,9 @@ function openBooking(court) {
 
 // ============ HARDCODED BLOCKED SLOTS ============
 function isHardBlocked(court, dateVal, slotTime) {
-  const t1 = GENTS[4].time; // 5:30 – 7:00 PM
-  const t2 = GENTS[5].time; // 7:00 – 8:30 PM
-  const t3 = GENTS[6].time; // 8:30 – 10:00 PM
+  const t1 = GENTS[1].time; // 5:30 – 7:00 PM  (was GENTS[4])
+  const t2 = GENTS[2].time; // 7:00 – 8:30 PM  (was GENTS[5])
+  const t3 = GENTS[3].time; // 8:30 – 10:00 PM (was GENTS[6])
 
   // Rule 1 — Court 1: Mon/Wed/Thu 5:30–7:00 PM, 18 May–31 Jul 2026
   const R1_DATES = new Set(['2026-05-18','2026-05-20','2026-05-21','2026-05-25','2026-05-27','2026-05-28','2026-06-01','2026-06-03','2026-06-04','2026-06-08','2026-06-10','2026-06-11','2026-06-15','2026-06-17','2026-06-18','2026-06-22','2026-06-24','2026-06-25','2026-06-29','2026-07-01','2026-07-02','2026-07-06','2026-07-08','2026-07-09','2026-07-13','2026-07-15','2026-07-16','2026-07-20','2026-07-22','2026-07-23','2026-07-27','2026-07-29','2026-07-30']);
@@ -1924,7 +2096,7 @@ async function renderSlots() {
   const makeSection = (slots, session, emoji, label, basePrice) => {
     const sec  = document.createElement('div'); sec.className = 'session-section';
     const lbl  = document.createElement('div'); lbl.className = 'session-label';
-    lbl.innerHTML = `${emoji} ${label} · MWK ${basePrice.toLocaleString()}`;
+    lbl.innerHTML = `${emoji} ${label}`;
     const grid = document.createElement('div'); grid.className = 'slots-grid';
     slots.forEach(slot => {
       const existing     = liveBookings.find(b => b.time===slot.time);
@@ -1936,6 +2108,7 @@ async function renderSlots() {
       card.innerHTML   = `
         <div class="slot-time">${slot.time}</div>
         <div class="slot-price">MWK ${slot.price.toLocaleString()}</div>
+        <div class="slot-label">${slot.label}</div>
         <div class="slot-status">${isBooked ? (isMine ? 'Your Booking' : 'Booked') : 'Available'}</div>`;
       if (!isBooked) card.onclick = () => {
         card.classList.add('tapping');
@@ -1951,8 +2124,10 @@ async function renderSlots() {
     return sec;
   };
 
-  container.appendChild(makeSection(LADIES, 'ladies', '👩','Ladies Only (Morning · Until 1:00 PM)', 60000));
-  container.appendChild(makeSection(GENTS,  'gents',  '👨','Gents (1:00 PM – Midnight)', 60000));
+  container.appendChild(makeSection(MEN,       'morning', '👨','Men Only · 6:15 – 8:15 AM', 60000));
+  container.appendChild(makeSection(LADIES,    'ladies',  '👩','Ladies Only · 8:15 AM – 12:15 PM', 60000));
+  container.appendChild(makeSection(MIXED_DAY, 'gents',   '🎾','Open to All · 1:00 – 4:00 PM · MWK 60,000', 60000));
+  container.appendChild(makeSection(GENTS,     'evening', '🌙','Open to All · 4:00 PM – Midnight · MWK 75,000', 75000));
 }
 
 function selectSlot(slot, dateVal) {
@@ -2021,7 +2196,6 @@ async function confirmBooking() {
     time:       selectedSlot.time,
     price:      selectedSlot.price,
     duration:   selectedSlot.duration,
-    session:    selectedSlot.session || '',
     user_email: CU.email,
     user_name:  CU.name
   };
@@ -2343,15 +2517,17 @@ function toggleDark() {
   document.body.classList.toggle('dark');
   const isDark = document.body.classList.contains('dark');
   localStorage.setItem('sxa_dark', isDark ? '1' : '0');
-  const btn = document.getElementById('dark-toggle-btn');
-  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  const thumb = document.getElementById('dark-toggle-thumb');
+  if (thumb) thumb.textContent = isDark ? '☀️' : '🌙';
 }
 // Apply saved dark mode on load
 (function() {
+  const thumb = document.getElementById('dark-toggle-thumb');
   if (localStorage.getItem('sxa_dark') === '1') {
     document.body.classList.add('dark');
-    const btn = document.getElementById('dark-toggle-btn');
-    if (btn) btn.textContent = '☀️';
+    if (thumb) thumb.textContent = '☀️';
+  } else {
+    if (thumb) thumb.textContent = '🌙';
   }
 })();
 
@@ -2482,7 +2658,7 @@ function toast(msg, isErr=false) {
     try {
       const user = await supaGetUser(saved.email);
       if (user) {
-        CU = { email: user.email, name: user.name, phone: user.phone, avatar: user.avatar };
+        CU = { email: user.email, name: user.name, phone: user.phone, avatar: user.avatar, gender: user.gender };
         DB.saveSession(CU);
         showScreen('home', 'home');
         updateLandingButtons();
@@ -2514,6 +2690,35 @@ function toggleMute() {
   } else {
     icon.textContent  = '🔊';
     label.textContent = 'Sound On';
+  }
+}
+
+// ============ LOCATION ACTIONS ============
+const VENUE_LAT = -15.8103331;
+const VENUE_LNG = 35.0644551;
+const VENUE_LABEL = 'Sports X Arena, Blantyre, Malawi';
+
+function openDirections() {
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${VENUE_LAT},${VENUE_LNG}&destination_place_id=0x18d84ffa91bad835:0x900ffd6409db0840&travelmode=driving`;
+  window.open(url, '_blank');
+}
+
+function openInMaps() {
+  const url = `https://www.google.com/maps/search/?api=1&query=${VENUE_LAT},${VENUE_LNG}`;
+  window.open(url, '_blank');
+}
+
+async function shareLocation() {
+  const shareData = {
+    title: 'Sports X Arena',
+    text: 'Check out Sports X Arena in Blantyre, Malawi!',
+    url: `https://www.google.com/maps/search/?api=1&query=${VENUE_LAT},${VENUE_LNG}`
+  };
+  if (navigator.share) {
+    try { await navigator.share(shareData); } catch(e) { /* cancelled */ }
+  } else {
+    await navigator.clipboard.writeText(shareData.url).catch(()=>{});
+    toast('📋 Map link copied!');
   }
 }
 
@@ -2613,3 +2818,69 @@ showScreen = function(id, nav) {
 </script>
 </body>
 </html>
+
+<!-- DISCLAIMER MODAL -->
+<div id="disclaimer-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:#fff;border-radius:20px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.5);display:flex;flex-direction:column;">
+    <div style="background:linear-gradient(135deg,#cc0000,#8a0000);border-radius:20px 20px 0 0;padding:20px 22px 16px;position:sticky;top:0;z-index:1;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <div style="background:rgba(255,255,255,0.2);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">House Rules</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:1px;">Sports X Arena · Member Agreement</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px;">
+      <div style="border-left:3px solid #cc0000;padding-left:12px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#cc0000;margin-bottom:6px;">⏱ Booking Times</div>
+        <ul style="font-size:13px;color:#333;line-height:1.7;padding-left:14px;margin:0;">
+          <li>Start and finish within your booked slot.</li>
+          <li>Extra time only allowed if the court is free.</li>
+          <li>Late arrivals do <strong>not</strong> extend booking time.</li>
+          <li>No barefoot play or unsafe footwear permitted.</li>
+        </ul>
+      </div>
+      <div style="border-left:3px solid #cc0000;padding-left:12px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#cc0000;margin-bottom:6px;">🤝 Player Conduct</div>
+        <ul style="font-size:13px;color:#333;line-height:1.7;padding-left:14px;margin:0;">
+          <li>Respect staff, coaches, and fellow players.</li>
+          <li>No abusive language, fighting, or dangerous behaviour.</li>
+          <li>Unsportsmanlike conduct may lead to suspension.</li>
+        </ul>
+      </div>
+      <div style="border-left:3px solid #cc0000;padding-left:12px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#cc0000;margin-bottom:6px;">🏟 Court Care</div>
+        <ul style="font-size:13px;color:#333;line-height:1.7;padding-left:14px;margin:0;">
+          <li>Do not damage glass walls, nets, or fencing.</li>
+          <li>No hanging on nets or hitting walls intentionally.</li>
+          <li>Members are liable for damages caused intentionally.</li>
+        </ul>
+      </div>
+      <div style="background:#fff8f0;border:1.5px solid #f59e0b;border-radius:12px;padding:12px 14px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#b45309;margin-bottom:5px;">⚠️ Cancellation Policy</div>
+        <div style="font-size:13px;color:#444;line-height:1.6;">You have <strong>1 hour after booking</strong> to cancel free of charge. After that, your payment is <strong>non-refundable</strong>.</div>
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-top:2px;">
+        <input type="checkbox" id="disclaimer-check" onchange="document.getElementById('disclaimer-accept-btn').style.opacity=this.checked?'1':'0.4';document.getElementById('disclaimer-accept-btn').style.pointerEvents=this.checked?'auto':'none';" style="width:18px;height:18px;margin-top:2px;accent-color:#cc0000;flex-shrink:0;">
+        <span style="font-size:13px;color:#555;line-height:1.5;">I have read and agree to the Sports X Arena house rules and cancellation policy.</span>
+      </label>
+      <button id="disclaimer-accept-btn" onclick="acceptDisclaimer()" style="width:100%;padding:14px;background:#cc0000;color:#fff;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;opacity:0.4;pointer-events:none;transition:opacity 0.2s;box-shadow:0 6px 20px rgba(204,0,0,0.35);">I Agree — Let's Play 🎾</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showDisclaimer() {
+  const overlay = document.getElementById('disclaimer-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('disclaimer-check').checked = false;
+  const btn = document.getElementById('disclaimer-accept-btn');
+  btn.style.opacity = '0.4';
+  btn.style.pointerEvents = 'none';
+}
+function acceptDisclaimer() {
+  document.getElementById('disclaimer-overlay').style.display = 'none';
+  showScreen('login');
+}
+</script>
