@@ -2185,6 +2185,9 @@ async function renderSlots() {
     liveBookings = DB.bookings().filter(b => b.court===selectedCourt && b.date.startsWith(dateVal));
   }
 
+  // Fetch admin manual blocks from Supabase so all users see them live
+  try { adminManualBlocks = await supaBlocksFetch(); } catch(e) { /* use cached */ }
+
   container.innerHTML = '';
 
   const makeSection = (slots, session, emoji, label, basePrice) => {
@@ -2195,8 +2198,9 @@ async function renderSlots() {
     slots.forEach(slot => {
       const existing     = liveBookings.find(b => b.time===slot.time);
       const isHardBlock  = isHardBlocked(selectedCourt, dateVal, slot.time);
-      const isBooked     = !!existing || isHardBlock;
-      const isMine       = !isHardBlock && !!existing && CU && existing.userEmail === CU.email;
+      const isManualBlock = isAdminManualBlocked(selectedCourt, dateVal, slot.time);
+      const isBooked     = !!existing || isHardBlock || isManualBlock;
+      const isMine       = !isHardBlock && !isManualBlock && !!existing && CU && existing.userEmail === CU.email;
       const card       = document.createElement('button');
       card.className   = `slot-card ${session}${isBooked ? ' booked' : ''}${isMine ? ' mine-booked' : ''}`;
       card.innerHTML   = `
@@ -3049,7 +3053,43 @@ function acceptDisclaimer() {
 
 // ============ ADMIN PANEL ============
 const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
-let adminManualBlocks = JSON.parse(localStorage.getItem('sxa_admin_blocks') || '[]');
+let adminManualBlocks = []; // loaded from Supabase, not localStorage
+
+// ── Supabase helpers for blocked_slots table ──
+async function supaBlocksFetch() {
+  const url = SUPABASE_URL + '/rest/v1/blocked_slots?select=court,date,time';
+  const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error('Failed to fetch blocked slots');
+  return res.json();
+}
+
+async function supaBlockInsert(court, date, time) {
+  const url = SUPABASE_URL + '/rest/v1/blocked_slots';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ court, date, time })
+  });
+  if (!res.ok) throw new Error('Failed to insert block');
+}
+
+async function supaBlockDelete(court, date, time) {
+  const url = SUPABASE_URL + '/rest/v1/blocked_slots?court=eq.' + encodeURIComponent(court) + '&date=eq.' + encodeURIComponent(date) + '&time=eq.' + encodeURIComponent(time);
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Prefer': 'return=minimal' }
+  });
+  if (!res.ok) throw new Error('Failed to delete block');
+}
+
+async function loadAdminBlocks() {
+  try {
+    adminManualBlocks = await supaBlocksFetch();
+  } catch(e) {
+    console.warn('Could not load blocks from Supabase, falling back to localStorage', e);
+    adminManualBlocks = JSON.parse(localStorage.getItem('sxa_admin_blocks') || '[]');
+  }
+}
 
 function openAdminLogin() {
   document.getElementById('admin-user-input').value = '';
@@ -3084,8 +3124,11 @@ function doAdminLogin() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-admin').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
-  adminRender();
-  adminRenderManualBlocks();
+  // Load blocks from Supabase then render
+  loadAdminBlocks().then(() => {
+    adminRender();
+    adminRenderManualBlocks();
+  });
 }
 
 function adminLogout() {
@@ -3145,35 +3188,49 @@ async function adminRender() {
   });
 }
 
-function adminAddBlock() {
+async function adminAddBlock() {
   const court = document.getElementById('block-court').value;
   const date  = document.getElementById('block-date').value;
   const time  = document.getElementById('block-time').value;
   if (!date || !time) { toast('Pick a date and time slot.', true); return; }
   if (adminManualBlocks.some(b => b.court===court && b.date===date && b.time===time)) { toast('Already blocked!', true); return; }
-  adminManualBlocks.push({ court, date, time });
-  localStorage.setItem('sxa_admin_blocks', JSON.stringify(adminManualBlocks));
-  toast('Slot blocked ✓');
-  adminRenderManualBlocks();
-  // Refresh view if same date/court
-  if (document.getElementById('admin-date').value === date && document.getElementById('admin-court').value === court) adminRender();
+  try {
+    await supaBlockInsert(court, date, time);
+    adminManualBlocks.push({ court, date, time });
+    toast('Slot blocked ✓');
+    adminRenderManualBlocks();
+    if (document.getElementById('admin-date').value === date && document.getElementById('admin-court').value === court) adminRender();
+  } catch(e) {
+    toast('Error saving block. Check Supabase table.', true);
+    console.error(e);
+  }
 }
 
-function adminQuickBlock(court, date, time) {
+async function adminQuickBlock(court, date, time) {
   if (adminManualBlocks.some(b => b.court===court && b.date===date && b.time===time)) return;
-  adminManualBlocks.push({ court, date, time });
-  localStorage.setItem('sxa_admin_blocks', JSON.stringify(adminManualBlocks));
-  toast('Slot blocked ✓');
-  adminRenderManualBlocks();
-  adminRender();
+  try {
+    await supaBlockInsert(court, date, time);
+    adminManualBlocks.push({ court, date, time });
+    toast('Slot blocked ✓');
+    adminRenderManualBlocks();
+    adminRender();
+  } catch(e) {
+    toast('Error saving block. Check Supabase table.', true);
+    console.error(e);
+  }
 }
 
-function adminRemoveBlock(court, date, time) {
-  adminManualBlocks = adminManualBlocks.filter(b => !(b.court===court && b.date===date && b.time===time));
-  localStorage.setItem('sxa_admin_blocks', JSON.stringify(adminManualBlocks));
-  toast('Block removed');
-  adminRenderManualBlocks();
-  adminRender();
+async function adminRemoveBlock(court, date, time) {
+  try {
+    await supaBlockDelete(court, date, time);
+    adminManualBlocks = adminManualBlocks.filter(b => !(b.court===court && b.date===date && b.time===time));
+    toast('Block removed');
+    adminRenderManualBlocks();
+    adminRender();
+  } catch(e) {
+    toast('Error removing block. Check Supabase table.', true);
+    console.error(e);
+  }
 }
 
 function adminRenderManualBlocks() {
@@ -3192,28 +3249,6 @@ function adminRenderManualBlocks() {
       <button onclick="adminRemoveBlock('${b.court}','${b.date}','${b.time.replace(/'/g,"\\'")}')" style="background:rgba(204,0,0,0.2);border:1px solid rgba(204,0,0,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#ff6b6b;cursor:pointer;">Remove</button>
     </div>`;
   }).join('');
-}
-
-// Hook manual blocks into the booking system
-const _origIsHardBlocked = isHardBlocked;
-// Override renderSlots to also check manual blocks
-const _origRenderSlots = renderSlots;
-async function renderSlots() {
-  // Patch liveBookings check to include admin manual blocks
-  await _origRenderSlots();
-  // Re-mark manually blocked slots after render
-  const dateVal = document.getElementById('booking-date').value;
-  document.querySelectorAll('.slot-card').forEach(card => {
-    const timeEl = card.querySelector('.slot-time');
-    if (!timeEl) return;
-    const slotTime = timeEl.textContent;
-    if (isAdminManualBlocked(selectedCourt, dateVal, slotTime)) {
-      card.classList.add('booked');
-      const statusEl = card.querySelector('.slot-status');
-      if (statusEl) statusEl.textContent = 'Booked';
-      card.onclick = null;
-    }
-  });
 }
 
 // Secret entry: triple-tap the SX logo on landing (or tap 5× the header)
