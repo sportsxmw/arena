@@ -21,42 +21,77 @@
 }
 body { font-family: var(--font-b); background: var(--bg); color: #111; min-height: 100vh; overflow-x: hidden; }
 .screen { display: none; min-height: 100vh; flex-direction: column; }
-.screen.active { display: flex; animation: fadeIn 0.22s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.screen.active { 
+  display: flex; 
+  animation: fadeInScale 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fadeIn { 
+  from { opacity:0; transform:translateY(6px); } 
+  to { opacity:1; transform:translateY(0); } 
+}
+@keyframes fadeInScale {
+  from { 
+    opacity: 0; 
+    transform: translateY(8px) scale(0.98);
+  } 
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+  } 
+}
 
 /* ── BOTTOM NAV ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: #fff; border-top: 1px solid #ebebeb;
-  display: flex; z-index: 100; height: 64px;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(200, 200, 200, 0.3);
+  display: flex; z-index: 100; height: 68px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08);
 }
 .bottom-nav button {
   flex: 1; background: none; border: none; cursor: pointer;
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 3px; font-family: var(--font-b);
-  font-size: 11px; font-weight: 600; color: #aaa; padding: 8px 0;
-  transition: color 0.2s; position: relative; letter-spacing: 0.3px;
+  justify-content: center; gap: 4px; font-family: var(--font-b);
+  font-size: 11px; font-weight: 600; color: rgba(150, 150, 150, 0.8); padding: 8px 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative; letter-spacing: 0.3px;
+  -webkit-user-select: none; user-select: none;
+}
+.bottom-nav button:active {
+  transform: scale(0.92);
 }
 .bottom-nav button::before {
   content: ''; position: absolute; top: 0; left: 25%; right: 25%;
-  height: 4px; border-radius: 0 0 6px 6px;
-  background: var(--red); transform: scaleX(0);
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  height: 5px; border-radius: 0 0 8px 8px;
+  background: linear-gradient(135deg, var(--red), #ff3333);
+  transform: scaleX(0);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(204, 0, 0, 0.3);
 }
 .bottom-nav button.active { color: var(--red); }
 .bottom-nav button.active::before { transform: scaleX(1); }
-.bottom-nav button svg { width: 22px; height: 22px; stroke-width: 1.8; }
+.bottom-nav button svg { 
+  width: 22px; height: 22px; stroke-width: 1.8;
+  transition: all 0.25s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+}
+.bottom-nav button.active svg {
+  filter: drop-shadow(0 4px 8px rgba(204, 0, 0, 0.25));
+}
 
 /* ── LANDING ── */
 #screen-landing {
-  background: #000;
+  background: linear-gradient(135deg, #000 0%, #1a1a2e 100%);
   position: relative; align-items: center; justify-content: center;
+  overflow: hidden;
 }
 #screen-landing::before {
   content:''; position:absolute; inset:0;
-  background: linear-gradient(160deg, rgba(0,0,0,0.3) 0%, rgba(140,0,0,0.45) 50%, rgba(0,0,0,0.75) 100%);
+  background: linear-gradient(160deg, rgba(0,0,0,0.2) 0%, rgba(204,0,0,0.4) 50%, rgba(0,0,0,0.6) 100%);
   z-index: 1;
+  backdrop-filter: blur(2px);
 }
 #landing-video {
   position: absolute; inset: 0; width: 100%; height: 100%;
@@ -99,31 +134,65 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .landing-btns { display:flex; flex-direction:column; gap:12px; width:100%; }
 .btn-red {
   background: linear-gradient(135deg, var(--red-light), var(--red-dark));
-  color:#fff; border:none; border-radius:14px;
+  color:#fff; border:none; border-radius:16px;
   padding:17px 20px; font-family:var(--font-d); font-size:19px; font-weight:800;
-  cursor:pointer; transition:all 0.2s; letter-spacing:0.8px;
-  box-shadow: 0 4px 16px rgba(204,0,0,0.4);
+  cursor:pointer; transition:all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); letter-spacing:0.8px;
+  box-shadow: 0 8px 28px rgba(204,0,0,0.35);
+  position: relative; overflow: hidden;
+  -webkit-user-select: none; user-select: none;
 }
-.btn-red:hover { transform:translateY(-2px); box-shadow: 0 8px 24px rgba(204,0,0,0.5); }
-.btn-red:active { transform:translateY(0); }
+.btn-red::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.25) 100%);
+  opacity: 0; transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.btn-red:hover { 
+  transform:translateY(-4px); 
+  box-shadow: 0 16px 36px rgba(204,0,0,0.45);
+}
+.btn-red:hover::before { opacity: 1; }
+.btn-red:active { 
+  transform:translateY(-1px) scale(0.98); 
+  box-shadow: 0 4px 12px rgba(204,0,0,0.3);
+}
 .btn-ghost {
-  background: rgba(255,255,255,0.12); color:#fff;
-  border: 1.5px solid rgba(255,255,255,0.35); border-radius:14px;
+  background: rgba(255,255,255,0.15); color:#fff;
+  border: 1.5px solid rgba(255,255,255,0.4); border-radius:16px;
   padding:16px 20px; font-family:var(--font-d); font-size:19px; font-weight:700;
-  cursor:pointer; transition:all 0.2s; letter-spacing:0.5px;
-  backdrop-filter: blur(8px);
+  cursor:pointer; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); letter-spacing:0.5px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-user-select: none; user-select: none;
 }
-.btn-ghost:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.6); }
+.btn-ghost:hover { 
+  background: rgba(255,255,255,0.25); 
+  border-color: rgba(255,255,255,0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255,255,255,0.15);
+}
+.btn-ghost:active { 
+  transform: translateY(0) scale(0.96);
+}
 .btn-white {
-  background:rgba(255,255,255,0.92); color:var(--red); border:none; border-radius:14px;
+  background:rgba(255,255,255,0.95); color:var(--red); border:none; border-radius:16px;
   padding:17px 20px; font-family:var(--font-d); font-size:19px; font-weight:800;
-  cursor:pointer; transition:all 0.2s; letter-spacing:0.5px;
+  cursor:pointer; transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); letter-spacing:0.5px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  -webkit-user-select: none; user-select: none;
 }
-.btn-white:hover { background:#fff; transform:translateY(-1px); }
+.btn-white:hover { 
+  background:#fff; 
+  transform:translateY(-3px); 
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+.btn-white:active { 
+  transform:translateY(0) scale(0.96);
+}
 
 /* ── GENDER SELECTOR ── */
 .gender-wrap {
-  width: 100%; display: flex; gap: 10px;
+  width: 100%; display: flex; gap: 12px;
 }
 .gender-opt {
   flex: 1; position: relative;
@@ -131,16 +200,31 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .gender-opt input[type="radio"] { display: none; }
 .gender-opt label {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 14px 10px; border-radius: 12px;
-  background: rgba(255,255,255,0.92); border: 2px solid transparent;
+  padding: 16px 12px; border-radius: 14px;
+  background: rgba(255,255,255,0.93); border: 2px solid rgba(255,255,255,0.5);
   font-family: var(--font-d); font-size: 17px; font-weight: 700;
-  color: #555; cursor: pointer; transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1); letter-spacing: 0.3px;
+  color: rgba(100,100,100,0.8); cursor: pointer; 
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08); 
+  letter-spacing: 0.3px;
+  -webkit-user-select: none; user-select: none;
 }
-.gender-opt label:hover { background: #fff; border-color: rgba(204,0,0,0.3); color: #333; }
+.gender-opt label:hover { 
+  background: #fff; 
+  border-color: rgba(204,0,0,0.4); 
+  color: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+.gender-opt label:active {
+  transform: translateY(0) scale(0.96);
+}
 .gender-opt input:checked + label {
-  background: #fff; border-color: var(--red);
-  color: var(--red); box-shadow: 0 0 0 3px rgba(204,0,0,0.15);
+  background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95)); 
+  border-color: var(--red);
+  color: var(--red); 
+  box-shadow: 0 0 0 4px rgba(204,0,0,0.15), 0 8px 24px rgba(204,0,0,0.2);
+  font-weight: 800;
 }
 .gender-opt .gender-icon { font-size: 20px; line-height: 1; }
 #screen-login, #screen-register {
@@ -164,13 +248,20 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .auth-logo span { font-family:var(--font-d); font-size:26px; font-weight:900; color:#fff; letter-spacing:-1px; }
 .auth-title { font-family:var(--font-d); font-size:32px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
 .auth-input {
-  width:100%; background:rgba(255,255,255,0.92); border:none; border-radius:12px;
-  padding:15px 20px; font-size:15px; font-family:var(--font-b); outline:none; color:#222;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width:100%; background:rgba(255,255,255,0.93); border:1.5px solid rgba(255,255,255,0.5); 
+  border-radius:14px; padding:15px 20px; font-size:15px; font-family:var(--font-b); 
+  outline:none; color:#222; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  -webkit-appearance: none;
+  -webkit-user-select: text;
 }
-.auth-input:focus { background:#fff; box-shadow: 0 0 0 3px rgba(204,0,0,0.3); }
-.auth-input::placeholder { color:#aaa; }
+.auth-input:focus { 
+  background:#fff; 
+  border-color: rgba(204, 0, 0, 0.6);
+  box-shadow: 0 0 0 4px rgba(204,0,0,0.15), 0 8px 24px rgba(204,0,0,0.2); 
+  transform: translateY(-1px);
+}
+.auth-input::placeholder { color:rgba(150,150,150,0.6); }
 .auth-link { color:rgba(255,255,255,0.7); font-size:13px; margin-top:4px; }
 .auth-link a { color:#ff6b6b; font-weight:700; cursor:pointer; }
 .pw-wrap { position:relative; width:100%; }
@@ -194,12 +285,22 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 /* ── HOME ── */
 #screen-home { padding-bottom:70px; flex-direction:column; background:var(--bg); }
 .page-hdr {
-  background:#fff; padding:16px 20px; display:flex; align-items:center;
-  gap:12px; border-bottom:1px solid #ececec; position:sticky; top:0; z-index:10;
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding:16px 20px; display:flex; align-items:center;
+  gap:12px; border-bottom:1px solid rgba(200, 200, 200, 0.3); 
+  position:sticky; top:0; z-index:10;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 .page-hdr h2 { font-family:var(--font-d); font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; flex:1; }
-.back-btn { background:none; border:none; font-size:26px; cursor:pointer; color:var(--red); line-height:1; padding:0 4px; }
+.back-btn { 
+  background:none; border:none; font-size:26px; cursor:pointer; color:var(--red); 
+  line-height:1; padding:0 4px;
+  transition: all 0.2s ease;
+  -webkit-user-select: none; user-select: none;
+}
+.back-btn:active { transform: scale(0.9); }
 .hero-wrap {
   position:relative; overflow:hidden;
   box-shadow: var(--shadow-md); margin-bottom: 0;
@@ -236,19 +337,29 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 
 .facilities-list { padding:0 14px; display:flex; flex-direction:column; gap:12px; }
 .facility-card {
-  background: var(--red);
-  border-radius: var(--radius); overflow:hidden;
-  cursor:pointer; transition: transform 0.18s, box-shadow 0.18s;
-  box-shadow: 0 4px 16px rgba(204,0,0,0.28);
+  background: linear-gradient(135deg, var(--red-light), var(--red-dark));
+  border-radius: 18px; overflow:hidden;
+  cursor:pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 28px rgba(204,0,0,0.32);
   position: relative;
+  -webkit-user-select: none; user-select: none;
 }
 .facility-card::before {
   content:''; position:absolute; inset:0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 70%);
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
-.facility-card:hover { transform:translateY(-2px); box-shadow: 0 8px 28px rgba(204,0,0,0.38); }
-.facility-card:active { transform:translateY(0); }
+.facility-card:hover { 
+  transform:translateY(-5px) scale(1.01); 
+  box-shadow: 0 16px 40px rgba(204,0,0,0.45);
+}
+.facility-card:hover::before { opacity: 1; }
+.facility-card:active { 
+  transform:translateY(-1px) scale(0.98);
+  box-shadow: 0 4px 16px rgba(204,0,0,0.25);
+}
 .facility-card-inner { display:flex; align-items:center; justify-content:space-between; padding:18px 20px; }
 .facility-left { display:flex; align-items:center; gap:14px; }
 .facility-icon {
@@ -278,17 +389,45 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 
 /* ── BOOKING ── */
 #screen-booking { padding-bottom:70px; flex-direction:column; background:var(--bg); }
-.date-row {
-  background:#fff; padding:14px 16px; display:flex; align-items:center;
-  gap:12px; border-bottom:1px solid #eee;
+.date-strip-wrap {
+  background: #fff; padding: 14px 16px 16px;
+  border-bottom: 1px solid #eee; position: sticky; top: 57px; z-index: 9;
 }
-.date-row label { font-size:12px; color:#888; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; white-space:nowrap; }
-.date-row input[type="date"] {
-  border:1.5px solid #e0e0e0; border-radius:10px; padding:9px 14px;
-  font-size:14px; font-family:var(--font-b); color:#222; outline:none; flex:1;
-  font-weight:600; transition:border-color 0.2s;
+.date-strip-label {
+  font-family: var(--font-d); font-size: 11px; font-weight: 700;
+  color: #aaa; text-transform: uppercase; letter-spacing: 2px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
 }
-.date-row input[type="date"]:focus { border-color:var(--red); }
+.date-strip-range {
+  font-weight: 500; color: #ccc; letter-spacing: 0.5px; font-size: 11px;
+}
+.date-strip {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.date-strip::-webkit-scrollbar { display: none; }
+.date-pill {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: 10px 14px; border-radius: 14px; border: none;
+  background: #f4f4f6; cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+  min-width: 56px;
+}
+.date-pill:hover { background: #ececec; transform: translateY(-1px); }
+.date-pill.active {
+  background: linear-gradient(135deg, var(--red-light), var(--red-dark));
+  box-shadow: 0 4px 14px rgba(204,0,0,0.35);
+}
+.date-pill.today-pill { border: 2px solid var(--red); background: #fff5f5; }
+.date-pill.today-pill.active { border-color: transparent; background: linear-gradient(135deg, var(--red-light), var(--red-dark)); }
+.dp-day { font-family: var(--font-d); font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+.dp-num { font-family: var(--font-d); font-size: 22px; font-weight: 900; color: #222; line-height: 1; }
+.dp-mon { font-size: 10px; color: #bbb; font-weight: 600; }
+.date-pill.active .dp-day,
+.date-pill.active .dp-num,
+.date-pill.active .dp-mon { color: #fff; }
+.date-pill.today-pill .dp-day { color: var(--red); }
+.date-pill.today-pill.active .dp-day { color: #fff; }
 .session-section { padding:16px 14px 8px; }
 .session-label {
   font-family:var(--font-d); font-size:12px; font-weight:700; letter-spacing:2.5px;
@@ -300,19 +439,41 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 }
 .slots-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:8px; }
 .slot-card {
-  border-radius:14px; padding:14px 8px; text-align:center;
+  border-radius:16px; padding:14px 8px; text-align:center;
   cursor:pointer; border:none; outline:none; display:flex; flex-direction:column;
-  gap:5px; transition:transform 0.15s, box-shadow 0.15s;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  gap:5px; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  position: relative; overflow: hidden;
+  -webkit-user-select: none; user-select: none;
 }
-.slot-card:hover:not(.booked) { transform:translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
-.slot-card:active:not(.booked) { transform:translateY(0); }
-.slot-card.morning { background: linear-gradient(145deg, #e00000, #aa0000); }
-.slot-card.ladies  { background: linear-gradient(145deg, #c2185b, #880e4f); }
-.slot-card.gents   { background: linear-gradient(145deg, #1565c0, #0d47a1); }
-.slot-card.evening { background: linear-gradient(145deg, #1a2035, #0c1020); }
-.slot-card.booked { background:#e2e2e2 !important; cursor:not-allowed; box-shadow:none; border:1.5px solid #d0d0d0 !important; opacity:0.75; }
-.slot-card.mine-booked { outline:3px solid rgba(245,158,11,0.6); }
+.slot-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(130deg, rgba(255,255,255,0.15) 0%, transparent 70%);
+  opacity: 0; transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.slot-card:hover:not(.booked) { 
+  transform:translateY(-6px) scale(1.02); 
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+}
+.slot-card:hover:not(.booked)::before { opacity: 1; }
+.slot-card:active:not(.booked) { 
+  transform:translateY(-2px) scale(0.98);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.slot-card.morning { background: linear-gradient(145deg, #ff1a1a, #cc0000); }
+.slot-card.ladies  { background: linear-gradient(145deg, #d81b60, #880e4f); }
+.slot-card.gents   { background: linear-gradient(145deg, #1976d2, #0d47a1); }
+.slot-card.evening { background: linear-gradient(145deg, #2d3e50, #0c1020); }
+.slot-card.booked { 
+  background:#f0f0f0 !important; 
+  cursor:not-allowed; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+  border:1.5px solid #ddd !important; 
+  opacity:0.65;
+  transform: none !important;
+}
+.slot-card.mine-booked { outline:3px solid rgba(245,158,11,0.7); }
 .slot-time { font-family:var(--font-d); font-size:12px; font-weight:800; color:#fff; line-height:1.2; }
 .slot-card.booked .slot-time { color:#aaa; }
 .slot-price { font-size:10px; color:rgba(255,255,255,0.75); font-weight:600; }
@@ -326,34 +487,47 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 /* ── CONFIRM ── */
 #screen-confirm { flex-direction:column; background:var(--bg); padding-bottom:70px; }
 .confirm-hdr {
-  background:#fff; padding:16px 20px; display:flex; align-items:center;
-  border-bottom:1px solid #eee; position:sticky; top:0; z-index:10;
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding:16px 20px; display:flex; align-items:center;
+  border-bottom:1px solid rgba(200, 200, 200, 0.3); 
+  position:sticky; top:0; z-index:10;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 .confirm-hdr h2 { flex:1; text-align:center; font-family:var(--font-d); font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
 .sum-title { font-family:var(--font-d); font-size:13px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:2.5px; padding:20px 16px 10px; }
 .sum-card {
-  background:#fff; border-radius:var(--radius); margin:0 14px;
-  overflow:hidden; box-shadow: var(--shadow-sm);
-  border: 1px solid #ececec;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 18px; margin:0 14px;
+  overflow:hidden; 
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border: 1px solid rgba(200, 200, 200, 0.3);
 }
-.sum-row { display:flex; align-items:center; justify-content:space-between; padding:15px 18px; border-bottom:1px solid #f4f4f4; }
+.sum-row { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(200, 200, 200, 0.15); }
 .sum-row:last-child { border-bottom:none; }
 .sum-row .sl { font-size:13px; color:#999; font-weight:500; }
 .sum-row .sv { font-size:15px; font-weight:700; color:#111; text-align:right; max-width:60%; }
 .pay-card {
-  background:#fff; border-radius:var(--radius); margin:14px 14px 0;
-  padding:20px; box-shadow: var(--shadow-sm); border: 1px solid #ececec;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 18px; margin:14px 14px 0;
+  padding:20px; 
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
+  border: 1px solid rgba(200, 200, 200, 0.3);
 }
 .pay-title { color:var(--red); font-weight:800; font-size:14px; margin-bottom:16px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:1px; font-family:var(--font-d); }
-.pay-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #f4f4f4; font-size:14px; }
+.pay-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(200, 200, 200, 0.15); font-size:14px; }
 .pay-row:last-child { border-bottom:none; }
 .pay-row .pl { color:#999; font-weight:500; }
 .pay-row .pv { font-weight:700; color:#111; }
 .confirm-note {
-  margin:14px 14px 0; background:rgba(245,158,11,0.08); border-radius:12px;
+  margin:14px 14px 0; background:rgba(245,158,11,0.12); border-radius:14px;
   padding:14px 16px; font-size:13px; color:#92680a; line-height:1.6;
-  border: 1px solid rgba(245,158,11,0.2);
+  border: 1.5px solid rgba(245,158,11,0.25);
 }
 
 /* ── PAYMENT METHODS ── */
@@ -366,17 +540,27 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .pay-methods-grid { padding: 0 14px; display: flex; flex-direction: column; gap: 12px; }
 .pay-method-btn {
   width: 100%; display: flex; align-items: center; gap: 14px;
-  padding: 16px 18px; border: none; border-radius: var(--radius);
-  cursor: pointer; transition: transform 0.17s, box-shadow 0.17s;
+  padding: 18px 20px; border: none; border-radius: 16px;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-align: left; position: relative; overflow: hidden;
+  -webkit-user-select: none; user-select: none;
 }
 .pay-method-btn::before {
   content:''; position:absolute; inset:0;
-  background: linear-gradient(130deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+  background: linear-gradient(130deg, rgba(255,255,255,0.15) 0%, transparent 70%);
   pointer-events:none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
-.pay-method-btn:hover { transform: translateY(-2px); }
-.pay-method-btn:active { transform: translateY(0); }
+.pay-method-btn:hover { 
+  transform: translateY(-3px); 
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+.pay-method-btn:hover::before { opacity: 1; }
+.pay-method-btn:active { 
+  transform: translateY(-1px) scale(0.98); 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 .airtel-btn {
   background: linear-gradient(135deg, #e60000, #aa0000);
   box-shadow: 0 6px 20px rgba(204,0,0,0.38);
@@ -695,12 +879,15 @@ body.dark .btn-signout,
 body.dark .modal-sheet,
 body.dark .pay-modal-sheet { background: #151820; border-color: #252836; }
 
-/* ── Date / booking row ── */
-body.dark .date-row { border-color: #252836; }
-body.dark .date-row label { color: #666; }
-body.dark .date-row input[type="date"] {
-  background: #1c1f2a; border-color: #2a2d38; color: #e8e8f0; color-scheme: dark;
-}
+/* ── Date strip ── */
+body.dark .date-strip-wrap { background: #151820; border-color: #252836; }
+body.dark .date-strip-label { color: #555; }
+body.dark .date-pill { background: #1c1f2a; }
+body.dark .date-pill:hover { background: #252836; }
+body.dark .dp-num { color: #e8e8f0; }
+body.dark .dp-day, body.dark .dp-mon { color: #555; }
+body.dark .date-pill.today-pill { background: #1f1518; border-color: var(--red); }
+body.dark .date-pill.today-pill .dp-day { color: var(--red); }
 
 /* ── Session section ── */
 body.dark .session-label { color: #555; }
@@ -1262,10 +1449,12 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
       <div class="booking-banner-sub">Select a time slot</div>
     </div>
   </div>
-  <div class="date-row">
-    <label>Date:</label>
-    <input type="date" id="booking-date" onchange="renderSlots().catch(e=>toast(e.message,true))">
+  <!-- 7-DAY ROLLING DATE PICKER -->
+  <div class="date-strip-wrap">
+    <div class="date-strip-label">Select Date <span class="date-strip-range" id="date-strip-range"></span></div>
+    <div class="date-strip" id="date-strip"></div>
   </div>
+  <input type="hidden" id="booking-date">
   <div id="slots-container"></div>
 </div>
 
@@ -1307,21 +1496,17 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
       </div>
     </button>
 
-    <!-- BANK TRANSFER -->
-    <button class="pay-method-btn nbs-btn" onclick="payWithBank()">
-      <div class="pay-method-logo nbs-logo">
-        <svg width="36" height="36" viewBox="0 0 80 80" fill="none">
-          <rect width="80" height="80" rx="14" fill="rgba(255,255,255,0.15)"/>
-          <rect x="10" y="38" width="60" height="28" rx="4" fill="rgba(255,255,255,0.25)"/>
-          <polygon points="40,10 10,38 70,38" fill="rgba(255,255,255,0.9)"/>
-          <rect x="22" y="46" width="10" height="14" rx="2" fill="rgba(10,47,110,0.6)"/>
-          <rect x="35" y="46" width="10" height="14" rx="2" fill="rgba(10,47,110,0.6)"/>
-          <rect x="48" y="46" width="10" height="14" rx="2" fill="rgba(10,47,110,0.6)"/>
+    <!-- PAY AT PROPERTY -->
+    <button class="pay-method-btn" style="background:linear-gradient(135deg,#1a7a3c,#145f2e);box-shadow:0 6px 20px rgba(26,122,60,0.38);" onclick="payAtProperty()">
+      <div class="pay-method-logo" style="background:rgba(255,255,255,0.15);border-radius:14px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
       </div>
       <div class="pay-method-info">
-        <div class="pay-method-name">Bank Transfer</div>
-        <div class="pay-method-num">NBS · NBM · Standard · Eco</div>
+        <div class="pay-method-name">Pay at Property</div>
+        <div class="pay-method-num">Cash on arrival · Sports X Arena</div>
       </div>
       <div class="pay-method-arrow">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -1352,6 +1537,42 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     <svg width="22" height="22" viewBox="0 0 32 32" fill="white"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.668 4.61 1.832 6.5L4 29l7.75-1.812A12.94 12.94 0 0016 28c6.627 0 12-5.373 12-12S22.627 3 16 3zm0 22a10.94 10.94 0 01-5.58-1.532l-.4-.238-4.6 1.075 1.1-4.487-.26-.415A10.944 10.944 0 015 15c0-6.065 4.935-11 11-11s11 4.935 11 11-4.935 11-11 11zm6.006-8.26c-.328-.164-1.94-.957-2.24-1.066-.3-.11-.518-.164-.736.164-.218.328-.845 1.066-.035 1.394.81.328 1.94.957 2.24 1.066zM20.8 20.4c-.33.493-1.09 1.09-1.8 1.09-.11 0-.22-.01-.33-.03-1.64-.49-3.16-1.31-4.44-2.44-1.14-1-2.07-2.23-2.71-3.6-.21-.46-.02-.97.44-1.2l.6-.3c.22-.11.33-.33.27-.55l-.6-1.8c-.11-.33-.44-.55-.77-.49-.99.2-1.76 1.09-1.76 2.09 0 .22.03.44.08.66.49 1.97 1.64 3.72 3.16 5.06 1.64 1.45 3.61 2.35 5.72 2.57h.11c.77 0 1.54-.33 2.09-.88.44-.44.66-1.09.49-1.64l-.22-.55c-.11-.22-.33-.33-.55-.22l-.77.39z"/></svg>
     Send Payment Proof via WhatsApp
   </button>
+
+  <!-- PAY AT PROPERTY MODAL -->
+  <div class="pay-modal-overlay" id="modal-property" onclick="if(event.target===this)closePayModal('modal-property')">
+    <div class="pay-modal-sheet">
+      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,#1a7a3c,#145f2e)">
+        <div class="pay-modal-icon">
+          <div style="background:rgba(255,255,255,0.15);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="pay-modal-brand">Pay at Property</div>
+          <div class="pay-modal-sub">Cash on arrival · Sports X Arena</div>
+        </div>
+        <button class="pay-modal-close" onclick="closePayModal('modal-property')">✕</button>
+      </div>
+      <div class="pay-modal-body">
+        <div class="pay-modal-steps" style="margin-bottom:20px">
+          <div class="pay-step"><span class="ps-num" style="background:#e8f5ee;color:#1a7a3c;">1</span><span>Reserve your slot by confirming this booking.</span></div>
+          <div class="pay-step"><span class="ps-num" style="background:#e8f5ee;color:#1a7a3c;">2</span><span>Arrive at <strong>Sports X Arena</strong> before your session starts.</span></div>
+          <div class="pay-step"><span class="ps-num" style="background:#e8f5ee;color:#1a7a3c;">3</span><span>Pay <strong id="property-amount">—</strong> in cash at the front desk.</span></div>
+          <div class="pay-step"><span class="ps-num" style="background:#e8f5ee;color:#1a7a3c;">4</span><span>Quote your reference: <strong id="property-ref">—</strong></span></div>
+        </div>
+        <div style="background:#f0faf4;border:1.5px solid #a7debb;border-radius:12px;padding:12px 14px;font-size:13px;color:#1a5c30;line-height:1.6;margin-bottom:16px;">
+          📍 <strong>Sports X Arena</strong> · Blantyre, Malawi<br>Near PEP Stores, City Centre · Open 6 AM – 11:30 PM
+        </div>
+        <button class="pay-dial-btn" style="background:linear-gradient(135deg,#1a7a3c,#145f2e);box-shadow:0 4px 14px rgba(26,122,60,0.35);" onclick="closePayModal('modal-property');document.getElementById('pay-done-cb').checked=true;toggleConfirmBtn();">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          I'll Pay on Arrival — Confirm
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- AIRTEL MONEY MODAL -->
   <div class="pay-modal-overlay" id="modal-airtel" onclick="if(event.target===this)closePayModal('modal-airtel')">
@@ -1388,186 +1609,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     </div>
   </div>
 
-  <!-- BANK PICKER MODAL -->
-  <div class="pay-modal-overlay" id="modal-bank" onclick="if(event.target===this)closePayModal('modal-bank')">
-    <div class="pay-modal-sheet">
-      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,#1a2035,#0c1020)">
-        <div class="pay-modal-icon">
-          <svg width="36" height="36" viewBox="0 0 80 80" fill="none">
-            <rect width="80" height="80" rx="14" fill="rgba(255,255,255,0.1)"/>
-            <rect x="10" y="38" width="60" height="28" rx="4" fill="rgba(255,255,255,0.2)"/>
-            <polygon points="40,10 10,38 70,38" fill="rgba(255,255,255,0.85)"/>
-          </svg>
-        </div>
-        <div>
-          <div class="pay-modal-brand">Bank Transfer</div>
-          <div class="pay-modal-sub">Select your bank</div>
-        </div>
-        <button class="pay-modal-close" onclick="closePayModal('modal-bank')">✕</button>
-      </div>
-      <div class="pay-modal-body" style="padding:16px 16px 32px">
-        <div class="bank-pick-grid">
-          <button class="bank-pick-btn" onclick="closePayModal('modal-bank');payWithNBS()" style="--bc:#003087">
-            <div class="bpb-color" style="background:#003087">
-              <span style="font-family:Arial;font-weight:900;font-size:15px;color:#fff;letter-spacing:-0.5px">NBS</span>
-            </div>
-            <span class="bpb-name">NBS Bank</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-          <button class="bank-pick-btn" onclick="closePayModal('modal-bank');payWithNBM()" style="--bc:#e30613">
-            <div class="bpb-color" style="background:#e30613">
-              <span style="font-family:Arial;font-weight:900;font-size:15px;color:#fff;letter-spacing:-0.5px">NBM</span>
-            </div>
-            <span class="bpb-name">National Bank</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-          <button class="bank-pick-btn" onclick="closePayModal('modal-bank');payWithStandard()" style="--bc:#0091da">
-            <div class="bpb-color" style="background:#0091da">
-              <span style="font-family:Arial;font-weight:900;font-size:13px;color:#fff;letter-spacing:-0.5px">STD</span>
-            </div>
-            <span class="bpb-name">Standard Bank</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-          <button class="bank-pick-btn" onclick="closePayModal('modal-bank');payWithEco()" style="--bc:#009a44">
-            <div class="bpb-color" style="background:#009a44">
-              <span style="font-family:Arial;font-weight:900;font-size:13px;color:#fff;letter-spacing:-0.5px">ECO</span>
-            </div>
-            <span class="bpb-name">Ecobank</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- NBS MODAL -->
-  <div class="pay-modal-overlay" id="modal-nbs" onclick="if(event.target===this)closePayModal('modal-nbs')">
-    <div class="pay-modal-sheet">
-      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,#002266,#003087)">
-        <div class="pay-modal-icon">
-          <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 10px;font-family:Arial;font-weight:900;font-size:18px;color:#fff;letter-spacing:-0.5px">NBS</div>
-        </div>
-        <div>
-          <div class="pay-modal-brand">NBS Bank</div>
-          <div class="pay-modal-sub">Internet Banking</div>
-        </div>
-        <button class="pay-modal-close" onclick="closePayModal('modal-nbs')">✕</button>
-      </div>
-      <div class="pay-modal-body">
-        <div class="pay-bank-detail-card">
-          <div class="pbd-row"><span class="pbd-l">Account Name</span><span class="pbd-v">Sports X Arena</span></div>
-          <div class="pbd-row"><span class="pbd-l">Account No.</span>
-            <span class="pbd-v pbd-copy" onclick="copyToClipboard('24994466','Copied!')">24994466 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-          <div class="pbd-row"><span class="pbd-l">Amount</span><span class="pbd-v" id="nbs-amount">—</span></div>
-          <div class="pbd-row"><span class="pbd-l">Reference</span>
-            <span class="pbd-v pbd-copy" id="nbs-ref" onclick="copyNBSRef()">— <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-        </div>
-        <button class="pay-portal-btn" style="background:linear-gradient(135deg,#002266,#003087)" onclick="window.open('https://eazyonline.nbsib.mw','_blank')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Open NBS Internet Banking
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- NBM MODAL -->
-  <div class="pay-modal-overlay" id="modal-nbm" onclick="if(event.target===this)closePayModal('modal-nbm')">
-    <div class="pay-modal-sheet">
-      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,#b3000f,#e30613)">
-        <div class="pay-modal-icon">
-          <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 10px;font-family:Arial;font-weight:900;font-size:18px;color:#fff;letter-spacing:-0.5px">NBM</div>
-        </div>
-        <div>
-          <div class="pay-modal-brand">National Bank</div>
-          <div class="pay-modal-sub">Internet Banking</div>
-        </div>
-        <button class="pay-modal-close" onclick="closePayModal('modal-nbm')">✕</button>
-      </div>
-      <div class="pay-modal-body">
-        <div class="pay-bank-detail-card">
-          <div class="pbd-row"><span class="pbd-l">Account Name</span><span class="pbd-v">Sports X Arena</span></div>
-          <div class="pbd-row"><span class="pbd-l">Account No.</span>
-            <span class="pbd-v pbd-copy" onclick="copyToClipboard('24994466','Copied!')">24994466 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-          <div class="pbd-row"><span class="pbd-l">Amount</span><span class="pbd-v" id="nbm-amount">—</span></div>
-          <div class="pbd-row"><span class="pbd-l">Reference</span>
-            <span class="pbd-v pbd-copy" id="nbm-ref" onclick="copyBankRef('nbm-ref')">— <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-        </div>
-        <button class="pay-portal-btn" style="background:linear-gradient(135deg,#b3000f,#e30613)" onclick="window.open('https://www.natbank.co.mw','_blank')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Open National Bank Online
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STANDARD BANK MODAL -->
-  <div class="pay-modal-overlay" id="modal-standard" onclick="if(event.target===this)closePayModal('modal-standard')">
-    <div class="pay-modal-sheet">
-      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,#006aad,#0091da)">
-        <div class="pay-modal-icon">
-          <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 10px;font-family:Arial;font-weight:900;font-size:15px;color:#fff;letter-spacing:-0.5px">STD</div>
-        </div>
-        <div>
-          <div class="pay-modal-brand">Standard Bank</div>
-          <div class="pay-modal-sub">Internet Banking</div>
-        </div>
-        <button class="pay-modal-close" onclick="closePayModal('modal-standard')">✕</button>
-      </div>
-      <div class="pay-modal-body">
-        <div class="pay-bank-detail-card">
-          <div class="pbd-row"><span class="pbd-l">Account Name</span><span class="pbd-v">Sports X Arena</span></div>
-          <div class="pbd-row"><span class="pbd-l">Account No.</span>
-            <span class="pbd-v pbd-copy" onclick="copyToClipboard('24994466','Copied!')">24994466 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-          <div class="pbd-row"><span class="pbd-l">Amount</span><span class="pbd-v" id="standard-amount">—</span></div>
-          <div class="pbd-row"><span class="pbd-l">Reference</span>
-            <span class="pbd-v pbd-copy" id="standard-ref" onclick="copyBankRef('standard-ref')">— <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-        </div>
-        <button class="pay-portal-btn" style="background:linear-gradient(135deg,#006aad,#0091da)" onclick="window.open('https://ebanking.standardbank.co.mw','_blank')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Open Standard Bank Online
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ECOBANK MODAL -->
-  <div class="pay-modal-overlay" id="modal-eco" onclick="if(event.target===this)closePayModal('modal-eco')">
-    <div class="pay-modal-sheet">
-      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,#007733,#009a44)">
-        <div class="pay-modal-icon">
-          <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 10px;font-family:Arial;font-weight:900;font-size:15px;color:#fff;letter-spacing:-0.5px">ECO</div>
-        </div>
-        <div>
-          <div class="pay-modal-brand">Ecobank</div>
-          <div class="pay-modal-sub">Internet Banking</div>
-        </div>
-        <button class="pay-modal-close" onclick="closePayModal('modal-eco')">✕</button>
-      </div>
-      <div class="pay-modal-body">
-        <div class="pay-bank-detail-card">
-          <div class="pbd-row"><span class="pbd-l">Account Name</span><span class="pbd-v">Sports X Arena</span></div>
-          <div class="pbd-row"><span class="pbd-l">Account No.</span>
-            <span class="pbd-v pbd-copy" onclick="copyToClipboard('24994466','Copied!')">24994466 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-          <div class="pbd-row"><span class="pbd-l">Amount</span><span class="pbd-v" id="eco-amount">—</span></div>
-          <div class="pbd-row"><span class="pbd-l">Reference</span>
-            <span class="pbd-v pbd-copy" id="eco-ref" onclick="copyBankRef('eco-ref')">— <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></span>
-          </div>
-        </div>
-        <button class="pay-portal-btn" style="background:linear-gradient(135deg,#007733,#009a44)" onclick="window.open('https://rib.ecobank.com/ecobankmalawi/IB/eng/login.html','_blank')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Open Ecobank Online
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+</div><!-- end screen-confirm -->
 
 <!-- LOCATION -->
 <div class="screen" id="screen-location">
@@ -1882,8 +1924,8 @@ let pendingDate   = null;
 let pendingAvatar = null; // temp avatar data URL while editing
 
 const MEN = [
-  { time:'6:15 – 7:15 AM', price:60000, duration:'1 Hour', session:'morning', label:'Men Only' },
-  { time:'7:15 – 8:15 AM', price:60000, duration:'1 Hour', session:'morning', label:'Men Only' },
+  { time:'6:15 – 7:15 AM', price:60000, duration:'1 Hour', session:'morning', label:'Open to All' },
+  { time:'7:15 – 8:15 AM', price:60000, duration:'1 Hour', session:'morning', label:'Open to All' },
 ];
 const LADIES = [
   { time:'8:15 – 9:15 AM',      price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
@@ -1902,7 +1944,7 @@ const GENTS = [
   { time:'7:00 – 8:30 PM',      price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
   { time:'8:30 – 10:00 PM',     price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
   { time:'10:00 – 11:30 PM',    price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
-  { time:'11:30 PM – 12:00 AM', price:75000, duration:'30 Min',    session:'evening', label:'Open to All' },
+  { time:'11:30 PM – 1:00 AM',  price:75000, duration:'1.5 Hours', session:'evening', label:'Open to All' },
 ];
 const EVENING = [];
 
@@ -2007,16 +2049,67 @@ async function doRegister() {
 function signOut() { CU = null; DB.clearSession(); showScreen('landing'); updateLandingButtons(); }
 
 // ============ BOOKING ============
+
+// Rolling 7-day window: tomorrow → tomorrow+6
+// Resets every Sunday (new week unlocks next 7 days from that Monday)
+function getBookingWindow() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+  const windowEnd = new Date(tomorrow); windowEnd.setDate(tomorrow.getDate() + 6);
+  return { min: tomorrow, max: windowEnd };
+}
+
+function toStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function buildDateStrip(selectedVal) {
+  const { min, max } = getBookingWindow();
+  const strip = document.getElementById('date-strip');
+  const rangeEl = document.getElementById('date-strip-range');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  rangeEl.textContent = months[min.getMonth()] + ' ' + min.getDate() + ' – ' + months[max.getMonth()] + ' ' + max.getDate();
+
+  strip.innerHTML = '';
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(min); d.setDate(min.getDate() + i);
+    const val = toStr(d);
+    const isFirst = i === 0;
+    const btn = document.createElement('button');
+    btn.className = 'date-pill' + (val === selectedVal ? ' active' : '');
+    btn.innerHTML = `
+      <span class="dp-day">${isFirst ? 'TMR' : days[d.getDay()]}</span>
+      <span class="dp-num">${d.getDate()}</span>
+      <span class="dp-mon">${months[d.getMonth()]}</span>`;
+    btn.onclick = () => selectDatePill(val);
+    strip.appendChild(btn);
+  }
+}
+
+function selectDatePill(val) {
+  document.getElementById('booking-date').value = val;
+  document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
+  const { min } = getBookingWindow();
+  document.querySelectorAll('.date-pill').forEach((p, i) => {
+    const d = new Date(min); d.setDate(min.getDate() + i);
+    if (toStr(d) === val) p.classList.add('active');
+  });
+  renderSlots().catch(e => toast(e.message, true));
+}
+
 function openBooking(court) {
   selectedCourt = court;
   document.getElementById('booking-court-title').textContent = court;
-  const today = new Date();
-  const maxD  = new Date('2026-12-31');
-  const toStr = d => d.toISOString().split('T')[0];
-  const dateEl = document.getElementById('booking-date');
-  dateEl.value = toStr(today);
-  dateEl.min   = toStr(today);
-  dateEl.max   = toStr(maxD);
+  const { min } = getBookingWindow();
+  const defaultVal = toStr(min); // default to tomorrow
+  document.getElementById('booking-date').value = defaultVal;
+  buildDateStrip(defaultVal);
   renderSlots().catch(e => toast(e.message, true));
   showScreen('booking','book');
 }
@@ -2054,16 +2147,17 @@ async function renderSlots() {
   const container = document.getElementById('slots-container');
   const dateVal   = document.getElementById('booking-date').value;
 
-  // Enforce December 2026 booking limit
-  const today  = new Date(); today.setHours(0,0,0,0);
-  const maxD   = new Date('2026-12-31');
-  const picked = new Date(dateVal + 'T00:00:00');
-  if (picked > maxD) {
-    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Bookings are only available up to December 2026.</div>';
+  // Enforce rolling 7-day window
+  const { min, max } = getBookingWindow();
+  const [py, pm, pd] = dateVal.split('-').map(Number);
+  const picked = new Date(py, pm - 1, pd);
+
+  if (picked < min) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Bookings open from tomorrow onwards.</div>';
     return;
   }
-  if (picked < today) {
-    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Please select today or a future date.</div>';
+  if (picked > max) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Bookings are only available 7 days ahead. Check back on Sunday for the next week.</div>';
     return;
   }
 
@@ -2124,7 +2218,7 @@ async function renderSlots() {
     return sec;
   };
 
-  container.appendChild(makeSection(MEN,       'morning', '👨','Men Only · 6:15 – 8:15 AM', 60000));
+  container.appendChild(makeSection(MEN,       'morning', '🎾','Open to All · 6:15 – 8:15 AM', 60000));
   container.appendChild(makeSection(LADIES,    'ladies',  '👩','Ladies Only · 8:15 AM – 12:15 PM', 60000));
   container.appendChild(makeSection(MIXED_DAY, 'gents',   '🎾','Open to All · 1:00 – 4:00 PM · MWK 60,000', 60000));
   container.appendChild(makeSection(GENTS,     'evening', '🌙','Open to All · 4:00 PM – Midnight · MWK 75,000', 75000));
@@ -2151,6 +2245,7 @@ function selectSlot(slot, dateVal) {
   document.getElementById('c-ref').textContent      = refVal;
   window._pendingBooking = { fee: 'MWK ' + slot.price.toLocaleString(), ref: refVal };
   // Reset payment gate
+  window._selectedPayMethod = null;
   const cb = document.getElementById('pay-done-cb');
   const btn = document.getElementById('btn-confirm-booking');
   const wrap = document.getElementById('pay-done-wrap');
@@ -2189,15 +2284,18 @@ async function confirmBooking() {
   const already = liveBookings.find(b => b.time===selectedSlot.time);
   if (already) { toast('This slot was just taken — please choose another.', true); showScreen('booking','book'); renderSlots(); return; }
 
+  const payMethod = window._selectedPayMethod || 'airtel';
   const booking = {
-    name:       CU.name,
-    date:       pendingDate + 'T00:00:00',
-    court:      selectedCourt,
-    time:       selectedSlot.time,
-    price:      selectedSlot.price,
-    duration:   selectedSlot.duration,
-    user_email: CU.email,
-    user_name:  CU.name
+    name:           CU.name,
+    date:           pendingDate + 'T00:00:00',
+    court:          selectedCourt,
+    time:           selectedSlot.time,
+    price:          selectedSlot.price,
+    duration:       selectedSlot.duration,
+    user_email:     CU.email,
+    user_name:      CU.name,
+    payment_status: payMethod === 'property' ? 'unpaid' : 'paid',
+    payment_method: payMethod === 'property' ? 'pay_at_property' : 'airtel_money'
   };
 
 
@@ -2452,43 +2550,24 @@ function toggleConfirmBtn() {
 
 // ============ PAYMENT MODALS ============
 function payWithAirtel() {
+  window._selectedPayMethod = 'airtel';
   const pending = window._pendingBooking || {};
   document.getElementById('airtel-amount').textContent = pending.fee || '—';
   document.getElementById('airtel-ref').textContent    = pending.ref || document.getElementById('c-ref').textContent || '—';
   document.getElementById('modal-airtel').classList.add('open');
 }
-function payWithBank() {
-  document.getElementById('modal-bank').classList.add('open');
-}
-function _fillBankModal(prefix) {
+function payAtProperty() {
+  window._selectedPayMethod = 'property';
   const pending = window._pendingBooking || {};
   const fee = pending.fee || '—';
   const ref = pending.ref || document.getElementById('c-ref').textContent || '—';
-  const amtEl = document.getElementById(prefix + '-amount');
-  const refEl = document.getElementById(prefix + '-ref');
-  if (amtEl) amtEl.textContent = fee;
-  if (refEl) {
-    refEl.setAttribute('data-ref', ref);
-    refEl.innerHTML = ref + ' <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-  }
+  document.getElementById('property-amount').textContent = fee;
+  document.getElementById('property-ref').textContent    = ref;
+  document.getElementById('modal-property').classList.add('open');
 }
-function payWithNBS()      { _fillBankModal('nbs');      document.getElementById('modal-nbs').classList.add('open'); }
-function payWithNBM()      { _fillBankModal('nbm');      document.getElementById('modal-nbm').classList.add('open'); }
-function payWithStandard() { _fillBankModal('standard'); document.getElementById('modal-standard').classList.add('open'); }
-function payWithEco()      { _fillBankModal('eco');      document.getElementById('modal-eco').classList.add('open'); }
 function closePayModal(id) { document.getElementById(id).classList.remove('open'); }
 function copyToClipboard(text, msg) {
   navigator.clipboard.writeText(text).then(() => toast(msg || 'Copied!')).catch(() => toast('Copy failed', true));
-}
-function copyNBSRef() {
-  const el  = document.getElementById('nbs-ref');
-  const ref = el.getAttribute('data-ref') || '';
-  copyToClipboard(ref, 'Reference copied!');
-}
-function copyBankRef(elId) {
-  const el  = document.getElementById(elId);
-  const ref = el ? (el.getAttribute('data-ref') || '') : '';
-  copyToClipboard(ref, 'Reference copied!');
 }
 
 // ============ LANDING SESSION CHECK ============
@@ -2637,17 +2716,6 @@ function toast(msg, isErr=false) {
     }
   });
   observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
-})();
-
-// Init — restrict booking date to today through December 2026
-(function() {
-  const today = new Date();
-  const maxD  = new Date('2026-12-31');
-  const toStr = d => d.toISOString().split('T')[0];
-  const dateEl = document.getElementById('booking-date');
-  dateEl.value = toStr(today);
-  dateEl.min   = toStr(today);
-  dateEl.max   = toStr(maxD);
 })();
 
 // Auto-login from saved session
