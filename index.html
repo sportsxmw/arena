@@ -1309,7 +1309,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     <span id="unmute-icon">🔇</span> <span id="unmute-label">Tap for Sound</span>
   </button>
   <div class="landing-content">
-    <div class="brand-badge"><span>SX</span></div>
+    <div class="brand-badge" onclick="adminSecretTap()" style="cursor:default;"><span>SX</span></div>
     <div class="landing-tagline">Padel Courts · Blantyre</div>
     <h1 class="landing-title">Sports X<br>Arena</h1>
     <div class="landing-btns" id="landing-btns">
@@ -2887,6 +2887,101 @@ showScreen = function(id, nav) {
 </body>
 </html>
 
+<!-- ADMIN SCREEN -->
+<div class="screen" id="screen-admin" style="background:#0f1420;padding-bottom:80px">
+  <div style="background:linear-gradient(135deg,#cc0000,#8a0000);padding:20px 20px 16px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;">
+    <div style="background:rgba(255,255,255,0.2);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🔐</div>
+    <div style="flex:1">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">Admin Panel</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.65);">Sports X Arena · Restricted Access</div>
+    </div>
+    <button onclick="adminLogout()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">Sign Out</button>
+  </div>
+
+  <!-- Date picker + Court filter -->
+  <div style="padding:16px 16px 0;display:flex;gap:10px;align-items:center;">
+    <div style="flex:1">
+      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">Date</label>
+      <input type="date" id="admin-date" onchange="adminRender()" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:14px;outline:none;font-family:'Barlow',sans-serif;">
+    </div>
+    <div style="flex:1">
+      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">Court</label>
+      <select id="admin-court" onchange="adminRender()" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;outline:none;font-family:'Barlow',sans-serif;appearance:none;">
+        <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
+        <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div style="padding:12px 16px 0;display:flex;gap:14px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:#22c55e"></div><span style="font-size:11px;color:rgba(255,255,255,0.5);">Available</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:#cc0000"></div><span style="font-size:11px;color:rgba(255,255,255,0.5);">User Booked</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:#f59e0b"></div><span style="font-size:11px;color:rgba(255,255,255,0.5);">Hard Blocked</span></div>
+  </div>
+
+  <!-- Slots grid -->
+  <div id="admin-slots" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
+    <div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px;font-size:14px;">Pick a date to view slots</div>
+  </div>
+
+  <!-- Add manual block section -->
+  <div style="margin:0 16px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">🚫 Block a Slot Manually</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <select id="block-court" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;outline:none;font-family:'Barlow',sans-serif;appearance:none;">
+        <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
+        <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
+      </select>
+      <input type="date" id="block-date" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:14px;outline:none;font-family:'Barlow',sans-serif;">
+      <select id="block-time" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;outline:none;font-family:'Barlow',sans-serif;appearance:none;">
+        <option value="" style="background:#1a1a2e;">— Select Time Slot —</option>
+        <option value="6:15 – 7:15 AM" style="background:#1a1a2e;">6:15 – 7:15 AM</option>
+        <option value="7:15 – 8:15 AM" style="background:#1a1a2e;">7:15 – 8:15 AM</option>
+        <option value="8:15 – 9:15 AM" style="background:#1a1a2e;">8:15 – 9:15 AM</option>
+        <option value="9:15 – 10:15 AM" style="background:#1a1a2e;">9:15 – 10:15 AM</option>
+        <option value="10:15 – 11:15 AM" style="background:#1a1a2e;">10:15 – 11:15 AM</option>
+        <option value="11:15 AM – 12:15 PM" style="background:#1a1a2e;">11:15 AM – 12:15 PM</option>
+        <option value="1:00 – 2:00 PM" style="background:#1a1a2e;">1:00 – 2:00 PM</option>
+        <option value="2:00 – 3:00 PM" style="background:#1a1a2e;">2:00 – 3:00 PM</option>
+        <option value="3:00 – 4:00 PM" style="background:#1a1a2e;">3:00 – 4:00 PM</option>
+        <option value="4:00 – 5:30 PM" style="background:#1a1a2e;">4:00 – 5:30 PM</option>
+        <option value="5:30 – 7:00 PM" style="background:#1a1a2e;">5:30 – 7:00 PM</option>
+        <option value="7:00 – 8:30 PM" style="background:#1a1a2e;">7:00 – 8:30 PM</option>
+        <option value="8:30 – 10:00 PM" style="background:#1a1a2e;">8:30 – 10:00 PM</option>
+        <option value="10:00 – 11:30 PM" style="background:#1a1a2e;">10:00 – 11:30 PM</option>
+        <option value="11:30 PM – 1:00 AM" style="background:#1a1a2e;">11:30 PM – 1:00 AM</option>
+      </select>
+      <button onclick="adminAddBlock()" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#000;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;">Block This Slot</button>
+    </div>
+    <!-- Active manual blocks list -->
+    <div id="admin-manual-blocks" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN OVERLAY -->
+<div id="admin-login-overlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);">
+  <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);border-radius:20px;max-width:380px;width:100%;padding:32px 24px;box-shadow:0 24px 60px rgba(0,0,0,0.8);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="background:var(--red);width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;box-shadow:0 6px 20px rgba(204,0,0,0.4);">🔐</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:1.5px;">Admin Access</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">Sports X Arena · Staff Only</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <input id="admin-user-input" type="text" placeholder="Username" autocomplete="off"
+        style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:13px 16px;color:#fff;font-size:15px;outline:none;font-family:'Barlow',sans-serif;width:100%;">
+      <div style="position:relative;">
+        <input id="admin-pass-input" type="password" placeholder="Password" autocomplete="off"
+          style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:13px 16px;color:#fff;font-size:15px;outline:none;font-family:'Barlow',sans-serif;width:100%;padding-right:44px;">
+        <button type="button" onclick="toggleAdminPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:18px;padding:4px;">👁</button>
+      </div>
+      <div id="admin-login-err" style="display:none;color:#ff6b6b;font-size:13px;text-align:center;font-weight:600;"></div>
+      <button onclick="doAdminLogin()" style="background:linear-gradient(135deg,#e60000,#a80000);border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 20px rgba(204,0,0,0.4);">Enter Panel</button>
+      <button onclick="document.getElementById('admin-login-overlay').style.display='none'" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:rgba(255,255,255,0.5);cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- DISCLAIMER MODAL -->
 <div id="disclaimer-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
   <div style="background:#fff;border-radius:20px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.5);display:flex;flex-direction:column;">
@@ -2950,5 +3045,183 @@ function showDisclaimer() {
 function acceptDisclaimer() {
   document.getElementById('disclaimer-overlay').style.display = 'none';
   showScreen('login');
+}
+
+// ============ ADMIN PANEL ============
+const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
+let adminManualBlocks = JSON.parse(localStorage.getItem('sxa_admin_blocks') || '[]');
+
+function openAdminLogin() {
+  document.getElementById('admin-user-input').value = '';
+  document.getElementById('admin-pass-input').value = '';
+  document.getElementById('admin-login-err').style.display = 'none';
+  document.getElementById('admin-login-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('admin-user-input').focus(), 100);
+}
+
+function toggleAdminPw() {
+  const inp = document.getElementById('admin-pass-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function doAdminLogin() {
+  const u = document.getElementById('admin-user-input').value.trim();
+  const p = document.getElementById('admin-pass-input').value;
+  const err = document.getElementById('admin-login-err');
+  if (u !== ADMIN_CREDS.user || p !== ADMIN_CREDS.pass) {
+    err.textContent = 'Invalid credentials. Try again.';
+    err.style.display = 'block';
+    document.getElementById('admin-pass-input').value = '';
+    return;
+  }
+  document.getElementById('admin-login-overlay').style.display = 'none';
+  // Set today's date as default
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  document.getElementById('admin-date').value = todayStr;
+  document.getElementById('block-date').value = todayStr;
+  // Show admin screen
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-admin').classList.add('active');
+  document.getElementById('bottom-nav').style.display = 'none';
+  adminRender();
+  adminRenderManualBlocks();
+}
+
+function adminLogout() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-landing').classList.add('active');
+  document.getElementById('bottom-nav').style.display = 'none';
+}
+
+function isAdminManualBlocked(court, dateVal, time) {
+  return adminManualBlocks.some(b => b.court === court && b.date === dateVal && b.time === time);
+}
+
+async function adminRender() {
+  const dateVal = document.getElementById('admin-date').value;
+  const court   = document.getElementById('admin-court').value;
+  const container = document.getElementById('admin-slots');
+  if (!dateVal) { container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px;font-size:14px;">Pick a date to view slots</div>'; return; }
+
+  container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:30px;font-size:14px;">Loading…</div>';
+
+  let liveBookings = [];
+  try { liveBookings = await supaFetch(court, dateVal); } catch(e) { liveBookings = DB.bookings().filter(b => b.court===court && b.date.startsWith(dateVal)); }
+
+  const allSlots = [...MEN, ...LADIES, ...MIXED_DAY, ...GENTS];
+  const d = new Date(dateVal + 'T00:00:00');
+  const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateLabel = `${dayName}, ${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+
+  container.innerHTML = `<div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">${court} · ${dateLabel}</div>`;
+
+  allSlots.forEach(slot => {
+    const userBooked   = liveBookings.find(b => b.time === slot.time);
+    const hardBlocked  = isHardBlocked(court, dateVal, slot.time);
+    const manualBlock  = isAdminManualBlocked(court, dateVal, slot.time);
+    const blocked      = hardBlocked || manualBlock;
+    const isBooked     = !!userBooked;
+
+    let statusColor = '#22c55e', statusLabel = 'Available', bg = 'rgba(34,197,94,0.08)', border = 'rgba(34,197,94,0.2)';
+    if (isBooked && !blocked)  { statusColor='#cc0000'; statusLabel='Booked · '+(userBooked.userEmail||'User'); bg='rgba(204,0,0,0.1)'; border='rgba(204,0,0,0.3)'; }
+    if (hardBlocked)           { statusColor='#f59e0b'; statusLabel='Hard Blocked'; bg='rgba(245,158,11,0.08)'; border='rgba(245,158,11,0.25)'; }
+    if (manualBlock)           { statusColor='#f59e0b'; statusLabel='Manually Blocked'; bg='rgba(245,158,11,0.08)'; border='rgba(245,158,11,0.25)'; }
+
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:center;justify-content:space-between;background:${bg};border:1px solid ${border};border-radius:10px;padding:10px 14px;gap:10px;`;
+    row.innerHTML = `
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:#fff;">${slot.time}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">MWK ${slot.price.toLocaleString()} · ${slot.duration}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;font-weight:700;color:${statusColor};">${statusLabel}</span>
+        ${manualBlock ? `<button onclick="adminRemoveBlock('${court}','${dateVal}','${slot.time.replace(/'/g,"\\'")}')" style="background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#f59e0b;cursor:pointer;">Unblock</button>` : ''}
+        ${!isBooked && !hardBlocked && !manualBlock ? `<button onclick="adminQuickBlock('${court}','${dateVal}','${slot.time.replace(/'/g,"\\'")}')" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#f59e0b;cursor:pointer;">Block</button>` : ''}
+      </div>`;
+    container.appendChild(row);
+  });
+}
+
+function adminAddBlock() {
+  const court = document.getElementById('block-court').value;
+  const date  = document.getElementById('block-date').value;
+  const time  = document.getElementById('block-time').value;
+  if (!date || !time) { toast('Pick a date and time slot.', true); return; }
+  if (adminManualBlocks.some(b => b.court===court && b.date===date && b.time===time)) { toast('Already blocked!', true); return; }
+  adminManualBlocks.push({ court, date, time });
+  localStorage.setItem('sxa_admin_blocks', JSON.stringify(adminManualBlocks));
+  toast('Slot blocked ✓');
+  adminRenderManualBlocks();
+  // Refresh view if same date/court
+  if (document.getElementById('admin-date').value === date && document.getElementById('admin-court').value === court) adminRender();
+}
+
+function adminQuickBlock(court, date, time) {
+  if (adminManualBlocks.some(b => b.court===court && b.date===date && b.time===time)) return;
+  adminManualBlocks.push({ court, date, time });
+  localStorage.setItem('sxa_admin_blocks', JSON.stringify(adminManualBlocks));
+  toast('Slot blocked ✓');
+  adminRenderManualBlocks();
+  adminRender();
+}
+
+function adminRemoveBlock(court, date, time) {
+  adminManualBlocks = adminManualBlocks.filter(b => !(b.court===court && b.date===date && b.time===time));
+  localStorage.setItem('sxa_admin_blocks', JSON.stringify(adminManualBlocks));
+  toast('Block removed');
+  adminRenderManualBlocks();
+  adminRender();
+}
+
+function adminRenderManualBlocks() {
+  const container = document.getElementById('admin-manual-blocks');
+  if (!adminManualBlocks.length) { container.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;padding:8px 0;">No manual blocks set</div>'; return; }
+  const sorted = [...adminManualBlocks].sort((a,b) => a.date.localeCompare(b.date));
+  container.innerHTML = sorted.map(b => {
+    const d = new Date(b.date+'T00:00:00');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const label = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:8px 12px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#f59e0b;">${b.time}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);">${b.court} · ${label}</div>
+      </div>
+      <button onclick="adminRemoveBlock('${b.court}','${b.date}','${b.time.replace(/'/g,"\\'")}')" style="background:rgba(204,0,0,0.2);border:1px solid rgba(204,0,0,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#ff6b6b;cursor:pointer;">Remove</button>
+    </div>`;
+  }).join('');
+}
+
+// Hook manual blocks into the booking system
+const _origIsHardBlocked = isHardBlocked;
+// Override renderSlots to also check manual blocks
+const _origRenderSlots = renderSlots;
+async function renderSlots() {
+  // Patch liveBookings check to include admin manual blocks
+  await _origRenderSlots();
+  // Re-mark manually blocked slots after render
+  const dateVal = document.getElementById('booking-date').value;
+  document.querySelectorAll('.slot-card').forEach(card => {
+    const timeEl = card.querySelector('.slot-time');
+    if (!timeEl) return;
+    const slotTime = timeEl.textContent;
+    if (isAdminManualBlocked(selectedCourt, dateVal, slotTime)) {
+      card.classList.add('booked');
+      const statusEl = card.querySelector('.slot-status');
+      if (statusEl) statusEl.textContent = 'Booked';
+      card.onclick = null;
+    }
+  });
+}
+
+// Secret entry: triple-tap the SX logo on landing (or tap 5× the header)
+let _adminTapCount = 0, _adminTapTimer = null;
+function adminSecretTap() {
+  _adminTapCount++;
+  clearTimeout(_adminTapTimer);
+  _adminTapTimer = setTimeout(() => { _adminTapCount = 0; }, 2000);
+  if (_adminTapCount >= 5) { _adminTapCount = 0; openAdminLogin(); }
 }
 </script>
