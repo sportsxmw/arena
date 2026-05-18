@@ -92,6 +92,7 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
   background: linear-gradient(160deg, rgba(0,0,0,0.2) 0%, rgba(204,0,0,0.4) 50%, rgba(0,0,0,0.6) 100%);
   z-index: 1;
   backdrop-filter: blur(2px);
+  pointer-events: none;
 }
 #landing-video {
   position: absolute; inset: 0; width: 100%; height: 100%;
@@ -283,7 +284,7 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
 .btn-back-w:hover { background:rgba(255,255,255,0.28); }
 
 /* ── HOME ── */
-#screen-home { padding-bottom:70px; flex-direction:column; background:var(--bg); }
+#screen-home { padding-bottom:70px; flex-direction:column; background:var(--bg); overflow-y:auto; }
 .page-hdr {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
@@ -968,6 +969,28 @@ body.dark .section-title::after { background: #252836; }
 body.dark .bottom-nav { background: #0f111a; border-color: #1e2130; box-shadow: 0 -4px 20px rgba(0,0,0,0.4); }
 body.dark .bottom-nav button { color: #444; }
 body.dark .bottom-nav button.active { color: var(--red); }
+body.dark #app-footer { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+body.dark #app-footer span, body.dark #app-footer a span { color: rgba(255,255,255,0.3) !important; }
+body.dark #app-footer svg { stroke: rgba(255,255,255,0.3) !important; }
+
+/* Fixed global footer */
+#app-footer {
+  position: fixed;
+  bottom: 60px;
+  left: 0; right: 0;
+  z-index: 98;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.88);
+  border-top: 1px solid rgba(0,0,0,0.09);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+}
 
 /* ── Skeleton loader ── */
 body.dark .skeleton {
@@ -1309,7 +1332,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     <span id="unmute-icon">🔇</span> <span id="unmute-label">Tap for Sound</span>
   </button>
   <div class="landing-content">
-    <div class="brand-badge" onclick="adminSecretTap()" style="cursor:default;"><span>SX</span></div>
+    <div class="brand-badge" onclick="adminSecretTap()" style="cursor:pointer;position:relative;z-index:10;"><span>SX</span></div>
     <div class="landing-tagline">Padel Courts · Blantyre</div>
     <h1 class="landing-title">Sports X<br>Arena</h1>
     <div class="landing-btns" id="landing-btns">
@@ -1364,7 +1387,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
   <div class="page-hdr">
     <div style="width:30px"></div>
     <h2>Sports X Arena</h2>
-    <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDark()" title="Toggle dark mode" aria-label="Toggle dark mode"><span class="dark-toggle-thumb" id="dark-toggle-thumb">🌙</span></button>
+    <div style="width:30px"></div>
   </div>
   <div class="hero-wrap">
     <div class="hero-badge">📍 Blantyre, Malawi</div>
@@ -1434,6 +1457,8 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     </div>
   </div>
   <button class="find-map-btn" onclick="showScreen('location','location')">📍 Find Us on Map</button>
+
+
 </div>
 
 <!-- BOOKING -->
@@ -1743,6 +1768,18 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
 </div>
 
 
+<!-- GLOBAL FOOTER -->
+<div id="app-footer">
+  <span style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:rgba(0,0,0,0.4);letter-spacing:2px;text-transform:uppercase;">Visuals by Nikk</span>
+  <span style="color:rgba(0,0,0,0.2);font-size:12px;">·</span>
+  <a href="mailto:nikk_wl@outlook.com" style="display:flex;align-items:center;gap:5px;text-decoration:none;pointer-events:all;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:14px;color:rgba(0,0,0,0.4);">nikk_wl@outlook.com</span>
+  </a>
+  <span style="color:rgba(0,0,0,0.2);font-size:12px;">·</span>
+  <span style="font-family:'Barlow Condensed',sans-serif;font-size:14px;color:rgba(0,0,0,0.35);">© 2026</span>
+</div>
+
 <nav class="bottom-nav" id="bottom-nav" style="display:none">
   <button id="nav-home" onclick="showScreen('landing')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12L12 3l9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1763,6 +1800,10 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
   <button id="nav-account" onclick="showScreen('account','account')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke-linecap="round"/></svg>
     Account
+  </button>
+  <button onclick="toggleDark()" title="Toggle dark mode" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:6px 0;">
+    <span id="dark-toggle-thumb" style="font-size:20px;">🌙</span>
+    <span style="font-size:10px;font-weight:600;color:inherit;">Theme</span>
   </button>
 </nav>
 
@@ -1924,6 +1965,9 @@ const DB = {
 let CU = null;  // current user: { email, name, phone, avatar }
 let selectedCourt = 'Padel Court 1';
 let selectedSlot  = null;
+let adminManualBlocks = []; // loaded from Supabase on login
+
+// isAdminManualBlocked declared at top level
 let pendingDate   = null;
 let pendingAvatar = null; // temp avatar data URL while editing
 
@@ -1965,6 +2009,15 @@ function showScreen(id, nav) {
 
   const hasNav = ['home','booking','confirm','location','account','gallery'].includes(id);
   document.getElementById('bottom-nav').style.display = hasNav ? 'flex' : 'none';
+
+  if (id === 'booking') {
+    const strip = document.getElementById('date-strip');
+    if (strip && strip.children.length === 0) {
+      const { min } = getBookingWindow();
+      const defaultVal = document.getElementById('booking-date').value || toStr(min);
+      buildDateStrip(defaultVal);
+    }
+  }
 
   if (id === 'account') {
     document.getElementById('account-guest').style.display  = CU ? 'none'  : 'flex';
@@ -2054,13 +2107,12 @@ function signOut() { CU = null; DB.clearSession(); showScreen('landing'); update
 
 // ============ BOOKING ============
 
-// Rolling 7-day window: tomorrow → tomorrow+6
-// Resets every Sunday (new week unlocks next 7 days from that Monday)
+// Rolling 7-day window: today → today+6
+// Today disappears automatically at midnight (next time the page loads or refreshes)
 function getBookingWindow() {
   const now = new Date(); now.setHours(0,0,0,0);
-  const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
-  const windowEnd = new Date(tomorrow); windowEnd.setDate(tomorrow.getDate() + 6);
-  return { min: tomorrow, max: windowEnd };
+  const windowEnd = new Date(now); windowEnd.setDate(now.getDate() + 6);
+  return { min: now, max: windowEnd };
 }
 
 function toStr(d) {
@@ -2086,9 +2138,9 @@ function buildDateStrip(selectedVal) {
     const val = toStr(d);
     const isFirst = i === 0;
     const btn = document.createElement('button');
-    btn.className = 'date-pill' + (val === selectedVal ? ' active' : '');
+    btn.className = 'date-pill' + (isFirst ? ' today-pill' : '') + (val === selectedVal ? ' active' : '');
     btn.innerHTML = `
-      <span class="dp-day">${isFirst ? 'TMR' : days[d.getDay()]}</span>
+      <span class="dp-day">${isFirst ? 'TODAY' : days[d.getDay()]}</span>
       <span class="dp-num">${d.getDate()}</span>
       <span class="dp-mon">${months[d.getMonth()]}</span>`;
     btn.onclick = () => selectDatePill(val);
@@ -2157,7 +2209,7 @@ async function renderSlots() {
   const picked = new Date(py, pm - 1, pd);
 
   if (picked < min) {
-    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Bookings open from tomorrow onwards.</div>';
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">This date has passed. Please select today or a future date.</div>';
     return;
   }
   if (picked > max) {
@@ -2907,6 +2959,11 @@ showScreen = function(id, nav) {
   });
 })();
 
+// Make isAdminManualBlocked available in this script scope
+function isAdminManualBlocked(court, dateVal, time) {
+  return adminManualBlocks.some(b => b.court === court && b.date === dateVal && b.time === time);
+}
+
 </script>
 
 <!-- BLOCKED USER MODAL -->
@@ -2918,6 +2975,10 @@ showScreen = function(id, nav) {
     <button onclick="document.getElementById('blocked-user-overlay').style.display='none'" style="width:100%;padding:14px;background:linear-gradient(135deg,#e60000,#a80000);color:#fff;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 20px rgba(204,0,0,0.4);">OK, Understood</button>
   </div>
 </div>
+</div>
+
+
+
 </body>
 </html>
 
@@ -3095,7 +3156,7 @@ function acceptDisclaimer() {
 
 // ============ ADMIN PANEL ============
 const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
-let adminManualBlocks = []; // loaded from Supabase, not localStorage
+// adminManualBlocks declared at top level
 
 // ── Supabase helpers for blocked_slots table ──
 async function supaBlocksFetch() {
@@ -3260,7 +3321,7 @@ async function adminRenderNoPay() {
         }
         ${isBlocked
           ? `<button onclick="adminUnblockUser('${u.user_email}')" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#22c55e;cursor:pointer;">Unblock</button>`
-          : `<button onclick="adminBlockUser('${u.user_email}','${(u.user_name||'').replace(/'/g,"'")}')" style="background:rgba(204,0,0,0.2);border:1px solid rgba(204,0,0,0.3);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#ff6b6b;cursor:pointer;">Block</button>`
+          : `<button onclick="adminBlockUser('${u.user_email}','${(u.user_name||'').replace(/'/g, '')}')" style="background:rgba(204,0,0,0.2);border:1px solid rgba(204,0,0,0.3);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#ff6b6b;cursor:pointer;">Block</button>`
         }
       </div>
     `;
@@ -3313,10 +3374,6 @@ function adminLogout() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-landing').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
-}
-
-function isAdminManualBlocked(court, dateVal, time) {
-  return adminManualBlocks.some(b => b.court === court && b.date === dateVal && b.time === time);
 }
 
 async function adminRender() {
@@ -3437,4 +3494,24 @@ function adminSecretTap() {
   _adminTapTimer = setTimeout(() => { _adminTapCount = 0; }, 2000);
   if (_adminTapCount >= 5) { _adminTapCount = 0; openAdminLogin(); }
 }
+
+// Secret keyboard shortcut: type "sxadmin" anywhere on the page
+let _adminKeySeq = '';
+document.addEventListener('keydown', function(e) {
+  _adminKeySeq += e.key.toLowerCase();
+  if (_adminKeySeq.length > 7) _adminKeySeq = _adminKeySeq.slice(-7);
+  if (_adminKeySeq === 'sxadmin') { _adminKeySeq = ''; openAdminLogin(); }
+});
+
+// Long press SX logo for 2 seconds (mobile)
+let _adminLongPressTimer = null;
+document.addEventListener('DOMContentLoaded', function() {
+  const badge = document.querySelector('.brand-badge');
+  if (!badge) return;
+  badge.addEventListener('touchstart', function() {
+    _adminLongPressTimer = setTimeout(() => openAdminLogin(), 2000);
+  }, { passive: true });
+  badge.addEventListener('touchend', function() { clearTimeout(_adminLongPressTimer); });
+  badge.addEventListener('touchmove', function() { clearTimeout(_adminLongPressTimer); });
+});
 </script>
