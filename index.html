@@ -2009,6 +2009,7 @@ function showScreen(id, nav) {
 
   const hasNav = ['home','booking','confirm','location','account','gallery'].includes(id);
   document.getElementById('bottom-nav').style.display = hasNav ? 'flex' : 'none';
+  document.getElementById('app-footer').style.display = (id === 'landing') ? 'flex' : 'none';
 
   if (id === 'booking') {
     const strip = document.getElementById('date-strip');
@@ -3362,6 +3363,7 @@ function doAdminLogin() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-admin').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
+  document.getElementById('app-footer').style.display = 'none';
   // Load blocks from Supabase then render
   Promise.all([loadAdminBlocks(), loadAdminBlockedUsers()]).then(() => {
     adminRender();
@@ -3374,6 +3376,7 @@ function adminLogout() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-landing').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
+  document.getElementById('app-footer').style.display = 'flex';
 }
 
 async function adminRender() {
