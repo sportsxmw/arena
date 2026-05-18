@@ -1816,15 +1816,19 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
 // ============ SUPABASE (direct REST — no library) ============
 const SUPABASE_URL = "https://ncgqplsbrfknqrfcbxrb.supabase.co";
 const SUPABASE_KEY = "sb_publishable_PRxaVUrBHsXCdsI1TVo_IQ_l_XY7dn6";
+const SUPABASE_HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'Prefer': 'return=minimal'
+};
 
 async function supaInsert(booking) {
   const url = SUPABASE_URL + '/rest/v1/Bookings';
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY
-    },
+    headers: SUPABASE_HEADERS,
     body: JSON.stringify(booking)
   });
   const text = await res.text();
@@ -1843,7 +1847,7 @@ async function supaFetch(court, date) {
     + '&time=not.is.null'
     + '&select=court,date,time,price,duration,user_email';
   const res = await fetch(url, {
-    headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' }
+    headers: SUPABASE_HEADERS
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const rows = await res.json();
@@ -1868,7 +1872,7 @@ async function supaDelete(court, date, time) {
     + '&user_email=eq.' + encodeURIComponent(CU.email);
   const res = await fetch(url, {
     method: 'DELETE',
-    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' }
+    headers: SUPABASE_HEADERS
   });
   if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
 }
@@ -1876,7 +1880,7 @@ async function supaDelete(court, date, time) {
 // ============ SUPABASE USER FUNCTIONS ============
 async function supaGetUser(email) {
   const url = SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email) + '&select=email,name,phone,password,avatar,gender';
-  const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' } });
+  const res = await fetch(url, { headers: SUPABASE_HEADERS });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const rows = await res.json();
   return rows.length ? rows[0] : null;
@@ -1886,7 +1890,7 @@ async function supaCreateUser(user) {
   const url = SUPABASE_URL + '/rest/v1/users';
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    headers: SUPABASE_HEADERS,
     body: JSON.stringify(user)
   });
   if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
@@ -1896,7 +1900,7 @@ async function supaUpdateUser(email, updates) {
   const url = SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email);
   const res = await fetch(url, {
     method: 'PATCH',
-    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    headers: SUPABASE_HEADERS,
     body: JSON.stringify(updates)
   });
   if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
@@ -2278,6 +2282,22 @@ function sendWhatsApp() {
 async function confirmBooking() {
   if (!CU || !selectedSlot) return;
 
+  // ── No-Pay / Blocked User Guard ──
+  try {
+    const isBlocked = await checkUserBlocked(CU.email);
+    if (isBlocked) {
+      showBlockedModal('Your account has been suspended due to an outstanding unpaid booking. Please visit Sports X Arena to settle your payment before booking again.');
+      return;
+    }
+    const hasUnpaid = await checkUserHasUnpaid(CU.email);
+    if (hasUnpaid) {
+      showBlockedModal('You have an unpaid booking on your account. Please settle your payment at the property before making a new booking.');
+      return;
+    }
+  } catch(e) {
+    console.warn('Could not verify user status:', e);
+  }
+
   // Final guard — re-check Supabase live before inserting
   let liveBookings = [];
   try {
@@ -2330,7 +2350,7 @@ async function refreshAccount() {
   // Pull latest bookings for this user from Supabase
   try {
     const url = SUPABASE_URL + '/rest/v1/Bookings?user_email=eq.' + encodeURIComponent(CU.email) + '&select=court,date,time,price,duration,user_email,booked_at&order=booked_at.desc';
-    const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' } });
+    const res = await fetch(url, { headers: SUPABASE_HEADERS });
     if (res.ok) {
       const rows = await res.json();
       const fresh = rows.map(r => ({
@@ -2888,6 +2908,16 @@ showScreen = function(id, nav) {
 })();
 
 </script>
+
+<!-- BLOCKED USER MODAL -->
+<div id="blocked-user-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);">
+  <div style="background:#1a1a2e;border:1.5px solid rgba(204,0,0,0.4);border-radius:20px;max-width:380px;width:100%;padding:32px 24px;box-shadow:0 24px 60px rgba(0,0,0,0.8);text-align:center;">
+    <div style="background:rgba(204,0,0,0.15);width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:30px;border:2px solid rgba(204,0,0,0.3);">🚫</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Booking Suspended</div>
+    <div id="blocked-user-msg" style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:24px;"></div>
+    <button onclick="document.getElementById('blocked-user-overlay').style.display='none'" style="width:100%;padding:14px;background:linear-gradient(135deg,#e60000,#a80000);color:#fff;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 20px rgba(204,0,0,0.4);">OK, Understood</button>
+  </div>
+</div>
 </body>
 </html>
 
@@ -2927,6 +2957,18 @@ showScreen = function(id, nav) {
   <!-- Slots grid -->
   <div id="admin-slots" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
     <div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px;font-size:14px;">Pick a date to view slots</div>
+  </div>
+
+  <!-- No-Pay Offenders section -->
+  <div style="margin:16px 16px 0;background:rgba(255,255,255,0.04);border:1.5px solid rgba(204,0,0,0.25);border-radius:14px;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#ff6b6b;text-transform:uppercase;letter-spacing:0.8px;">🚫 No-Pay Offenders</div>
+      <button onclick="adminRenderNoPay()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);cursor:pointer;">↻ Refresh</button>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:12px;line-height:1.5;">Users with unpaid bookings. Block them to prevent future bookings until payment is settled.</div>
+    <div id="admin-nopay-list" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-size:13px;">Loading...</div>
+    </div>
   </div>
 
   <!-- Add manual block section -->
@@ -3058,7 +3100,7 @@ let adminManualBlocks = []; // loaded from Supabase, not localStorage
 // ── Supabase helpers for blocked_slots table ──
 async function supaBlocksFetch() {
   const url = SUPABASE_URL + '/rest/v1/blocked_slots?select=court,date,time';
-  const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Accept': 'application/json' } });
+  const res = await fetch(url, { headers: SUPABASE_HEADERS });
   if (!res.ok) throw new Error('Failed to fetch blocked slots');
   return res.json();
 }
@@ -3067,7 +3109,7 @@ async function supaBlockInsert(court, date, time) {
   const url = SUPABASE_URL + '/rest/v1/blocked_slots';
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    headers: SUPABASE_HEADERS,
     body: JSON.stringify({ court, date, time })
   });
   if (!res.ok) throw new Error('Failed to insert block');
@@ -3077,7 +3119,7 @@ async function supaBlockDelete(court, date, time) {
   const url = SUPABASE_URL + '/rest/v1/blocked_slots?court=eq.' + encodeURIComponent(court) + '&date=eq.' + encodeURIComponent(date) + '&time=eq.' + encodeURIComponent(time);
   const res = await fetch(url, {
     method: 'DELETE',
-    headers: { 'apikey': SUPABASE_KEY, 'Prefer': 'return=minimal' }
+    headers: SUPABASE_HEADERS
   });
   if (!res.ok) throw new Error('Failed to delete block');
 }
@@ -3089,6 +3131,141 @@ async function loadAdminBlocks() {
     console.warn('Could not load blocks from Supabase, falling back to localStorage', e);
     adminManualBlocks = JSON.parse(localStorage.getItem('sxa_admin_blocks') || '[]');
   }
+}
+
+// ── Supabase helpers for blocked_users table ──
+async function supaBlockedUsersFetch() {
+  const url = SUPABASE_URL + '/rest/v1/blocked_users?select=user_email,user_name,blocked_at,reason';
+  const res = await fetch(url, { headers: SUPABASE_HEADERS });
+  if (!res.ok) throw new Error('Failed to fetch blocked users');
+  return res.json();
+}
+
+async function supaBlockedUsersInsert(user_email, user_name, reason) {
+  const url = SUPABASE_URL + '/rest/v1/blocked_users';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: SUPABASE_HEADERS,
+    body: JSON.stringify({ user_email, user_name, reason: reason || 'Unpaid booking', blocked_at: new Date().toISOString() })
+  });
+  if (!res.ok) throw new Error('Failed to block user');
+}
+
+async function supaBlockedUsersDelete(user_email) {
+  const url = SUPABASE_URL + '/rest/v1/blocked_users?user_email=eq.' + encodeURIComponent(user_email);
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: SUPABASE_HEADERS
+  });
+  if (!res.ok) throw new Error('Failed to unblock user');
+}
+
+async function supaFetchUnpaidUsers() {
+  const url = SUPABASE_URL + '/rest/v1/Bookings?payment_status=eq.unpaid&select=user_email,user_name';
+  const res = await fetch(url, { headers: SUPABASE_HEADERS });
+  if (!res.ok) throw new Error('Failed to fetch unpaid bookings');
+  const rows = await res.json();
+  // Deduplicate by user_email
+  const seen = new Set();
+  return rows.filter(r => { if (seen.has(r.user_email)) return false; seen.add(r.user_email); return true; });
+}
+
+// Check if current user is blocked — called before booking
+async function checkUserBlocked(email) {
+  const url = SUPABASE_URL + '/rest/v1/blocked_users?user_email=eq.' + encodeURIComponent(email) + '&select=user_email';
+  const res = await fetch(url, { headers: SUPABASE_HEADERS });
+  if (!res.ok) return false;
+  const rows = await res.json();
+  return rows.length > 0;
+}
+
+// Check if current user has any unpaid bookings
+async function checkUserHasUnpaid(email) {
+  const url = SUPABASE_URL + '/rest/v1/Bookings?user_email=eq.' + encodeURIComponent(email) + '&payment_status=eq.unpaid&select=user_email&limit=1';
+  const res = await fetch(url, { headers: SUPABASE_HEADERS });
+  if (!res.ok) return false;
+  const rows = await res.json();
+  return rows.length > 0;
+}
+
+function showBlockedModal(msg) {
+  document.getElementById('blocked-user-msg').textContent = msg;
+  document.getElementById('blocked-user-overlay').style.display = 'flex';
+}
+
+// ── Admin: blocked users state ──
+let adminBlockedUsers = [];
+
+async function loadAdminBlockedUsers() {
+  try {
+    adminBlockedUsers = await supaBlockedUsersFetch();
+  } catch(e) {
+    console.warn('Could not load blocked users:', e);
+    adminBlockedUsers = [];
+  }
+}
+
+async function adminBlockUser(user_email, user_name) {
+  if (adminBlockedUsers.some(u => u.user_email === user_email)) {
+    toast('User is already blocked.', true); return;
+  }
+  try {
+    await supaBlockedUsersInsert(user_email, user_name, 'Unpaid booking');
+    adminBlockedUsers.push({ user_email, user_name, reason: 'Unpaid booking', blocked_at: new Date().toISOString() });
+    toast('User blocked ✓');
+    adminRenderNoPay();
+  } catch(e) {
+    toast('Error blocking user.', true); console.error(e);
+  }
+}
+
+async function adminUnblockUser(user_email) {
+  try {
+    await supaBlockedUsersDelete(user_email);
+    adminBlockedUsers = adminBlockedUsers.filter(u => u.user_email !== user_email);
+    toast('User unblocked ✓');
+    adminRenderNoPay();
+  } catch(e) {
+    toast('Error unblocking user.', true); console.error(e);
+  }
+}
+
+async function adminRenderNoPay() {
+  const container = document.getElementById('admin-nopay-list');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-size:13px;">Loading...</div>';
+
+  let unpaidUsers = [];
+  try { unpaidUsers = await supaFetchUnpaidUsers(); } catch(e) { unpaidUsers = []; }
+
+  if (!unpaidUsers.length) {
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-size:13px;">No unpaid bookings found 🎉</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  unpaidUsers.forEach(u => {
+    const isBlocked = adminBlockedUsers.some(b => b.user_email === u.user_email);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;gap:8px;';
+    row.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.user_name || 'Unknown'}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.user_email}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        ${isBlocked
+          ? '<span style="font-size:11px;font-weight:700;color:#ff6b6b;background:rgba(204,0,0,0.15);border:1px solid rgba(204,0,0,0.3);border-radius:6px;padding:3px 8px;">BLOCKED</span>'
+          : '<span style="font-size:11px;font-weight:700;color:#f59e0b;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:3px 8px;">UNPAID</span>'
+        }
+        ${isBlocked
+          ? `<button onclick="adminUnblockUser('${u.user_email}')" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#22c55e;cursor:pointer;">Unblock</button>`
+          : `<button onclick="adminBlockUser('${u.user_email}','${(u.user_name||'').replace(/'/g,"'")}')" style="background:rgba(204,0,0,0.2);border:1px solid rgba(204,0,0,0.3);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;color:#ff6b6b;cursor:pointer;">Block</button>`
+        }
+      </div>
+    `;
+    container.appendChild(row);
+  });
 }
 
 function openAdminLogin() {
@@ -3125,9 +3302,10 @@ function doAdminLogin() {
   document.getElementById('screen-admin').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
   // Load blocks from Supabase then render
-  loadAdminBlocks().then(() => {
+  Promise.all([loadAdminBlocks(), loadAdminBlockedUsers()]).then(() => {
     adminRender();
     adminRenderManualBlocks();
+    adminRenderNoPay();
   });
 }
 
