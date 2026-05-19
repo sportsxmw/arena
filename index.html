@@ -4132,4 +4132,173 @@ document.addEventListener('DOMContentLoaded', function() {
   badge.addEventListener('touchend', function() { clearTimeout(_adminLongPressTimer); });
   badge.addEventListener('touchmove', function() { clearTimeout(_adminLongPressTimer); });
 });
+
+// ── PWA INSTALL BUTTON ──
+(function() {
+  // Inject styles
+  const style = document.createElement('style');
+  style.textContent = `
+    #pwa-install-btn {
+      display: none;
+      position: fixed;
+      bottom: 88px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: linear-gradient(135deg, #cc0000, #ff3333);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 14px 28px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(204,0,0,0.45);
+      white-space: nowrap;
+      animation: pwa-bounce 2.5s ease-in-out infinite;
+    }
+    @keyframes pwa-bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(-6px); }
+    }
+    #pwa-install-btn:active { transform: translateX(-50%) scale(0.95); }
+  `;
+  document.head.appendChild(style);
+
+  // Inject button
+  const btn = document.createElement('button');
+  btn.id = 'pwa-install-btn';
+  btn.innerHTML = '⬇ Install Sports X';
+  document.body.appendChild(btn);
+
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    btn.style.display = 'block';
+  });
+
+  btn.addEventListener('click', async function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      btn.textContent = '✓ Installing…';
+      setTimeout(() => { btn.style.display = 'none'; }, 2000);
+    }
+    deferredPrompt = null;
+    btn.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', function() {
+    btn.style.display = 'none';
+  });
+})();
+
+// ── iOS SAFARI INSTALL BANNER ──
+(function() {
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('pwa-ios-dismissed');
+
+  if (!isIos || !isSafari || isStandalone || dismissed) return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #ios-install-banner {
+      position: fixed;
+      bottom: 88px;
+      left: 16px;
+      right: 16px;
+      z-index: 9999;
+      background: #1a1a1a;
+      border: 1px solid rgba(204,0,0,0.4);
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      animation: ios-slide-up 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes ios-slide-up {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #ios-install-banner .ios-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: linear-gradient(135deg, #cc0000, #ff3333);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; flex-shrink: 0;
+    }
+    #ios-install-banner .ios-text {
+      flex: 1;
+      font-family: 'Barlow', sans-serif;
+      color: #fff;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    #ios-install-banner .ios-text strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+      color: #fff;
+    }
+    #ios-install-banner .ios-text span {
+      color: rgba(255,255,255,0.6);
+    }
+    #ios-install-banner .ios-share {
+      color: #0a84ff;
+      font-size: 1.1rem;
+    }
+    #ios-install-banner .ios-close {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: rgba(255,255,255,0.5);
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    #ios-install-banner .ios-arrow {
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 10px solid #1a1a1a;
+    }
+  `;
+  document.head.appendChild(style);
+
+  const banner = document.createElement('div');
+  banner.id = 'ios-install-banner';
+  banner.innerHTML = `
+    <div class="ios-icon">🏆</div>
+    <div class="ios-text">
+      <strong>Install Sports X Arena</strong>
+      <span>Tap <span class="ios-share">⎋</span> then <em>"Add to Home Screen"</em></span>
+    </div>
+    <button class="ios-close" id="ios-close-btn">✕</button>
+    <div class="ios-arrow"></div>
+  `;
+  document.body.appendChild(banner);
+
+  document.getElementById('ios-close-btn').addEventListener('click', function() {
+    banner.style.opacity = '0';
+    banner.style.transform = 'translateY(20px)';
+    banner.style.transition = 'all 0.3s ease';
+    setTimeout(() => banner.remove(), 300);
+    localStorage.setItem('pwa-ios-dismissed', '1');
+  });
+})();
 </script>
