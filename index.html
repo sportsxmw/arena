@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#cc0000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sports X Arena">
+<link rel="manifest" href="manifest.json">
 <title>Sports X Arena</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,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">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1318,6 +1323,163 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
 
 .facility-price { color: rgba(255,255,255,0.65); font-size: 12px; margin-top: 2px; font-weight: 500; }
 
+
+/* ── ADMIN PANEL ── */
+#screen-admin { background: #0b0f1c; }
+
+.admin-header {
+  background: linear-gradient(135deg, #cc0000, #8a0000);
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+.admin-header-icon {
+  background: rgba(255,255,255,0.2); border-radius: 10px;
+  width: 38px; height: 38px; display: flex; align-items: center;
+  justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.admin-header-text { flex: 1; }
+.admin-header-text h2 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 20px;
+  font-weight: 900; color: #fff; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;
+}
+.admin-header-text p { font-size: 11px; color: rgba(255,255,255,0.6); margin: 2px 0 0; }
+.admin-signout-btn {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+  color: #fff; border-radius: 8px; padding: 7px 13px; font-size: 12px;
+  font-weight: 700; cursor: pointer; font-family: 'Barlow', sans-serif;
+  transition: background 0.2s;
+}
+.admin-signout-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* Tab bar */
+.admin-tabbar {
+  display: flex; background: #080c15;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.admin-tab-btn {
+  flex: 1; padding: 12px 8px; background: none; border: none;
+  cursor: pointer; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.8px;
+  text-transform: uppercase; color: rgba(255,255,255,0.38);
+  border-bottom: 3px solid transparent; transition: all 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.admin-tab-btn .tab-icon { font-size: 17px; }
+.admin-tab-btn.active {
+  color: #fff; border-bottom-color: #cc0000;
+  background: rgba(204,0,0,0.1);
+}
+
+/* Tab panes */
+.admin-tab-pane { display: none; padding: 20px 16px; }
+.admin-tab-pane.active { display: block; }
+
+/* Admin cards */
+.admin-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px; overflow: hidden; margin-bottom: 16px;
+}
+.admin-card-header {
+  padding: 14px 16px; display: flex; align-items: center;
+  gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.admin-card-header .card-icon { font-size: 16px; }
+.admin-card-header h3 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+  font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;
+  margin: 0; color: #fff;
+}
+.admin-card-header .card-badge {
+  margin-left: auto; font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px; letter-spacing: 0.5px;
+}
+.admin-card-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+/* Admin form fields */
+.admin-field label {
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4);
+  letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 6px;
+}
+.admin-input {
+  width: 100%; background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.11); border-radius: 10px;
+  padding: 11px 14px; color: #fff; font-size: 14px; outline: none;
+  font-family: 'Barlow', sans-serif; transition: border-color 0.2s;
+  appearance: none;
+}
+.admin-input:focus { border-color: rgba(204,0,0,0.5); }
+
+/* Legend row */
+.admin-legend {
+  display: flex; gap: 14px; flex-wrap: wrap; padding: 0 0 4px;
+}
+.admin-legend-item { display: flex; align-items: center; gap: 6px; }
+.admin-legend-dot {
+  width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
+}
+.admin-legend-item span { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+/* Block form collapsible */
+.admin-block-toggle {
+  width: 100%; background: none; border: none;
+  padding: 13px 16px; display: flex; align-items: center;
+  justify-content: space-between; cursor: pointer;
+}
+.admin-block-toggle-left { display: flex; align-items: center; gap: 8px; }
+.admin-block-toggle-left span {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+  font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.8px;
+}
+.admin-block-chevron { color: rgba(255,255,255,0.3); font-size: 13px; transition: transform 0.2s; }
+
+/* Info note */
+.admin-note {
+  font-size: 12px; color: rgba(255,255,255,0.35); line-height: 1.6;
+  background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15);
+  border-radius: 10px; padding: 12px 14px;
+}
+
+/* Action buttons */
+.admin-btn {
+  width: 100%; border: none; border-radius: 12px; padding: 14px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+  font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;
+  cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+}
+.admin-btn:active { transform: scale(0.98); opacity: 0.9; }
+.admin-btn-green {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff; box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+}
+.admin-btn-amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000;
+}
+.admin-btn-red {
+  background: linear-gradient(135deg, #e60000, #a80000);
+  color: #fff; box-shadow: 0 4px 16px rgba(204,0,0,0.35);
+}
+
+/* Members tab */
+.admin-members-card {
+  background: rgba(255,255,255,0.03);
+  border: 1.5px solid rgba(204,0,0,0.2); border-radius: 14px;
+}
+.admin-members-header {
+  padding: 14px 16px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 1px solid rgba(204,0,0,0.12);
+}
+.admin-members-title { display: flex; align-items: center; gap: 8px; }
+.admin-members-title span {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+  font-weight: 800; color: #ff6b6b; text-transform: uppercase; letter-spacing: 0.8px;
+}
+.admin-refresh-btn {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.45); cursor: pointer; font-family: 'Barlow', sans-serif;
+}
 </style>
 </head>
 <body>
@@ -2402,18 +2564,19 @@ async function refreshAccount() {
 
   // Pull latest bookings for this user from Supabase
   try {
-    const url = SUPABASE_URL + '/rest/v1/Bookings?user_email=eq.' + encodeURIComponent(CU.email) + '&select=court,date,time,price,duration,user_email,booked_at&order=booked_at.desc';
+    const url = SUPABASE_URL + '/rest/v1/Bookings?user_email=eq.' + encodeURIComponent(CU.email) + '&select=court,date,time,price,duration,user_email,booked_at,payment_method&order=booked_at.desc';
     const res = await fetch(url, { headers: SUPABASE_HEADERS });
     if (res.ok) {
       const rows = await res.json();
       const fresh = rows.map(r => ({
-        court:     r.court,
-        date:      r.date,
-        time:      r.time,
-        price:     r.price,
-        duration:  r.duration,
-        userEmail: r.user_email,
-        bookedAt:  r.booked_at
+        court:         r.court,
+        date:          r.date,
+        time:          r.time,
+        price:         r.price,
+        duration:      r.duration,
+        userEmail:     r.user_email,
+        bookedAt:      r.booked_at,
+        paymentMethod: r.payment_method
       }));
       // Merge: keep other users' local bookings, replace this user's with fresh data
       const others = DB.bookings().filter(b => b.userEmail !== CU.email);
@@ -2458,9 +2621,11 @@ function renderMyBookings() {
     const d         = new Date(b.date.includes('T') ? b.date : b.date + 'T00:00:00');
     const dStr      = d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
     const isPast    = d < new Date(new Date().toDateString());
+    const isAdminBooked = b.paymentMethod === 'admin_booking';
+    const isWalkIn      = b.paymentMethod === 'admin_walkin';
     const bookedAt  = b.bookedAt ? new Date(b.bookedAt) : null;
     const deadline  = bookedAt ? new Date(bookedAt.getTime() + 60 * 60 * 1000) : null;
-    const canCancel = deadline && new Date() < deadline && !isPast;
+    const canCancel = !isAdminBooked && !isWalkIn && deadline && new Date() < deadline && !isPast;
 
     return `<div class="acct-row" style="flex-wrap:wrap;gap:8px">
       <span class="ri">🎾</span>
@@ -2471,6 +2636,8 @@ function renderMyBookings() {
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:12px;color:var(--red);font-weight:600">MWK ${b.price.toLocaleString()}</div>
         <div style="font-size:10px;font-weight:600;color:${isPast?'#bbb':'#22c55e'}">${isPast?'Past':'Upcoming'}</div>
+        ${isAdminBooked ? `<div style="margin-top:3px;background:#e0f2fe;color:#0369a1;border-radius:50px;padding:2px 8px;font-size:9px;font-weight:800;letter-spacing:0.5px;display:inline-block;">🏟 Admin Booked</div>` : ''}
+        ${isWalkIn ? `<div style="margin-top:3px;background:#fef3c7;color:#92400e;border-radius:50px;padding:2px 8px;font-size:9px;font-weight:800;letter-spacing:0.5px;display:inline-block;">👤 Walk-in</div>` : ''}
       </div>
       ${canCancel ? `
       <div style="width:100%;display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid #f5f5f5">
@@ -2980,91 +3147,196 @@ function isAdminManualBlocked(court, dateVal, time) {
 
 
 
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./sw.js")
+      .then(function(reg) { console.log("SW registered:", reg.scope); })
+      .catch(function(err) { console.warn("SW failed:", err); });
+  });
+}
+</script>
 </body>
 </html>
 
 <!-- ADMIN SCREEN -->
-<div class="screen" id="screen-admin" style="background:#0f1420;padding-bottom:80px">
-  <div style="background:linear-gradient(135deg,#cc0000,#8a0000);padding:20px 20px 16px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;">
-    <div style="background:rgba(255,255,255,0.2);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🔐</div>
-    <div style="flex:1">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;">Admin Panel</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.65);">Sports X Arena · Restricted Access</div>
-    </div>
-    <button onclick="adminLogout()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">Sign Out</button>
-  </div>
+<div class="screen" id="screen-admin">
 
-  <!-- Date picker + Court filter -->
-  <div style="padding:16px 16px 0;display:flex;gap:10px;align-items:center;">
-    <div style="flex:1">
-      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">Date</label>
-      <input type="date" id="admin-date" onchange="adminRender()" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:14px;outline:none;font-family:'Barlow',sans-serif;">
+  <!-- Sticky header + tab bar -->
+  <div style="position:sticky;top:0;z-index:20;background:#0b0f1c;">
+    <div class="admin-header">
+      <div class="admin-header-icon">🔐</div>
+      <div class="admin-header-text">
+        <h2>Admin Panel</h2>
+        <p>Sports X Arena · Restricted Access</p>
+      </div>
+      <button class="admin-signout-btn" onclick="adminLogout()">Sign Out</button>
     </div>
-    <div style="flex:1">
-      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;">Court</label>
-      <select id="admin-court" onchange="adminRender()" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;outline:none;font-family:'Barlow',sans-serif;appearance:none;">
-        <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
-        <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Legend -->
-  <div style="padding:12px 16px 0;display:flex;gap:14px;flex-wrap:wrap;">
-    <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:#22c55e"></div><span style="font-size:11px;color:rgba(255,255,255,0.5);">Available</span></div>
-    <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:#cc0000"></div><span style="font-size:11px;color:rgba(255,255,255,0.5);">User Booked</span></div>
-    <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:#f59e0b"></div><span style="font-size:11px;color:rgba(255,255,255,0.5);">Hard Blocked</span></div>
-  </div>
-
-  <!-- Slots grid -->
-  <div id="admin-slots" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
-    <div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px;font-size:14px;">Pick a date to view slots</div>
-  </div>
-
-  <!-- No-Pay Offenders section -->
-  <div style="margin:16px 16px 0;background:rgba(255,255,255,0.04);border:1.5px solid rgba(204,0,0,0.25);border-radius:14px;padding:16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#ff6b6b;text-transform:uppercase;letter-spacing:0.8px;">🚫 No-Pay Offenders</div>
-      <button onclick="adminRenderNoPay()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);cursor:pointer;">↻ Refresh</button>
-    </div>
-    <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:12px;line-height:1.5;">Users with unpaid bookings. Block them to prevent future bookings until payment is settled.</div>
-    <div id="admin-nopay-list" style="display:flex;flex-direction:column;gap:8px;">
-      <div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-size:13px;">Loading...</div>
+    <div class="admin-tabbar">
+      <button id="atab-btn-slots" class="admin-tab-btn active" onclick="adminSwitchTab('slots')">
+        <span class="tab-icon">📅</span>Slots
+      </button>
+      <button id="atab-btn-bookings" class="admin-tab-btn" onclick="adminSwitchTab('bookings')">
+        <span class="tab-icon">📋</span>Book
+      </button>
+      <button id="atab-btn-members" class="admin-tab-btn" onclick="adminSwitchTab('members')">
+        <span class="tab-icon">🚫</span>Members
+      </button>
     </div>
   </div>
 
-  <!-- Add manual block section -->
-  <div style="margin:0 16px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">🚫 Block a Slot Manually</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <select id="block-court" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;outline:none;font-family:'Barlow',sans-serif;appearance:none;">
-        <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
-        <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
-      </select>
-      <input type="date" id="block-date" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:14px;outline:none;font-family:'Barlow',sans-serif;">
-      <select id="block-time" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;outline:none;font-family:'Barlow',sans-serif;appearance:none;">
-        <option value="" style="background:#1a1a2e;">— Select Time Slot —</option>
-        <option value="6:15 – 7:15 AM" style="background:#1a1a2e;">6:15 – 7:15 AM</option>
-        <option value="7:15 – 8:15 AM" style="background:#1a1a2e;">7:15 – 8:15 AM</option>
-        <option value="8:15 – 9:15 AM" style="background:#1a1a2e;">8:15 – 9:15 AM</option>
-        <option value="9:15 – 10:15 AM" style="background:#1a1a2e;">9:15 – 10:15 AM</option>
-        <option value="10:15 – 11:15 AM" style="background:#1a1a2e;">10:15 – 11:15 AM</option>
-        <option value="11:15 AM – 12:15 PM" style="background:#1a1a2e;">11:15 AM – 12:15 PM</option>
-        <option value="1:00 – 2:00 PM" style="background:#1a1a2e;">1:00 – 2:00 PM</option>
-        <option value="2:00 – 3:00 PM" style="background:#1a1a2e;">2:00 – 3:00 PM</option>
-        <option value="3:00 – 4:00 PM" style="background:#1a1a2e;">3:00 – 4:00 PM</option>
-        <option value="4:00 – 5:30 PM" style="background:#1a1a2e;">4:00 – 5:30 PM</option>
-        <option value="5:30 – 7:00 PM" style="background:#1a1a2e;">5:30 – 7:00 PM</option>
-        <option value="7:00 – 8:30 PM" style="background:#1a1a2e;">7:00 – 8:30 PM</option>
-        <option value="8:30 – 10:00 PM" style="background:#1a1a2e;">8:30 – 10:00 PM</option>
-        <option value="10:00 – 11:30 PM" style="background:#1a1a2e;">10:00 – 11:30 PM</option>
-        <option value="11:30 PM – 1:00 AM" style="background:#1a1a2e;">11:30 PM – 1:00 AM</option>
-      </select>
-      <button onclick="adminAddBlock()" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#000;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;">Block This Slot</button>
+  <!-- ── TAB: SLOTS ── -->
+  <div id="atab-slots" class="admin-tab-pane active" style="padding-bottom:32px;">
+
+    <!-- Date + Court pickers -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="card-icon">🗓</span>
+        <h3>View Slots</h3>
+      </div>
+      <div class="admin-card-body">
+        <div style="display:flex;gap:10px;">
+          <div class="admin-field" style="flex:1;">
+            <label>Date</label>
+            <input type="date" id="admin-date" onchange="adminRender()" class="admin-input">
+          </div>
+          <div class="admin-field" style="flex:1;">
+            <label>Court</label>
+            <select id="admin-court" onchange="adminRender()" class="admin-input">
+              <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
+              <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-legend">
+          <div class="admin-legend-item"><div class="admin-legend-dot" style="background:#22c55e;"></div><span>Available</span></div>
+          <div class="admin-legend-item"><div class="admin-legend-dot" style="background:#cc0000;"></div><span>Booked</span></div>
+          <div class="admin-legend-item"><div class="admin-legend-dot" style="background:#f59e0b;"></div><span>Blocked</span></div>
+        </div>
+      </div>
     </div>
-    <!-- Active manual blocks list -->
-    <div id="admin-manual-blocks" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
+
+    <!-- Slots list -->
+    <div id="admin-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">Pick a date to view slots</div>
+    </div>
+
+    <!-- Manual block form -->
+    <div class="admin-card" style="margin:0 16px 8px;background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2);">
+      <button class="admin-block-toggle" onclick="adminToggleBlockForm()" id="block-form-toggle">
+        <div class="admin-block-toggle-left">
+          <span style="font-size:15px;">🚫</span>
+          <span>Block a Slot Manually</span>
+        </div>
+        <span id="block-form-chevron" class="admin-block-chevron">▼</span>
+      </button>
+      <div id="block-form-body" style="display:none;flex-direction:column;gap:10px;padding:0 16px 16px;">
+        <select id="block-court" class="admin-input">
+          <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
+          <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
+        </select>
+        <input type="date" id="block-date" class="admin-input">
+        <select id="block-time" class="admin-input">
+          <option value="" style="background:#1a1a2e;">— Select Time Slot —</option>
+          <option value="6:15 – 7:15 AM" style="background:#1a1a2e;">6:15 – 7:15 AM</option>
+          <option value="7:15 – 8:15 AM" style="background:#1a1a2e;">7:15 – 8:15 AM</option>
+          <option value="8:15 – 9:15 AM" style="background:#1a1a2e;">8:15 – 9:15 AM</option>
+          <option value="9:15 – 10:15 AM" style="background:#1a1a2e;">9:15 – 10:15 AM</option>
+          <option value="10:15 – 11:15 AM" style="background:#1a1a2e;">10:15 – 11:15 AM</option>
+          <option value="11:15 AM – 12:15 PM" style="background:#1a1a2e;">11:15 AM – 12:15 PM</option>
+          <option value="1:00 – 2:00 PM" style="background:#1a1a2e;">1:00 – 2:00 PM</option>
+          <option value="2:00 – 3:00 PM" style="background:#1a1a2e;">2:00 – 3:00 PM</option>
+          <option value="3:00 – 4:00 PM" style="background:#1a1a2e;">3:00 – 4:00 PM</option>
+          <option value="4:00 – 5:30 PM" style="background:#1a1a2e;">4:00 – 5:30 PM</option>
+          <option value="5:30 – 7:00 PM" style="background:#1a1a2e;">5:30 – 7:00 PM</option>
+          <option value="7:00 – 8:30 PM" style="background:#1a1a2e;">7:00 – 8:30 PM</option>
+          <option value="8:30 – 10:00 PM" style="background:#1a1a2e;">8:30 – 10:00 PM</option>
+          <option value="10:00 – 11:30 PM" style="background:#1a1a2e;">10:00 – 11:30 PM</option>
+          <option value="11:30 PM – 1:00 AM" style="background:#1a1a2e;">11:30 PM – 1:00 AM</option>
+        </select>
+        <button class="admin-btn admin-btn-amber" onclick="adminAddBlock()">Block This Slot</button>
+        <div id="admin-manual-blocks" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- ── TAB: BOOK ── -->
+  <div id="atab-bookings" class="admin-tab-pane" style="padding-bottom:32px;">
+
+    <div class="admin-note" style="margin-bottom:16px;">
+      Create a booking on behalf of a registered member or walk-in guest. Pick a slot then search for the member.
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="card-icon">📋</span>
+        <h3>New Booking</h3>
+      </div>
+      <div class="admin-card-body">
+        <div class="admin-field">
+          <label>Court</label>
+          <select id="bfm-court" class="admin-input">
+            <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
+            <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Date</label>
+          <input type="date" id="bfm-date" class="admin-input">
+        </div>
+        <div class="admin-field">
+          <label>Time Slot</label>
+          <select id="bfm-time" class="admin-input">
+            <option value="" style="background:#1a1a2e;">— Select Time Slot —</option>
+            <option value="6:15 – 7:15 AM|60000|1 Hour" style="background:#1a1a2e;">6:15 – 7:15 AM · MWK 60,000</option>
+            <option value="7:15 – 8:15 AM|60000|1 Hour" style="background:#1a1a2e;">7:15 – 8:15 AM · MWK 60,000</option>
+            <option value="8:15 – 9:15 AM|60000|1 Hour" style="background:#1a1a2e;">8:15 – 9:15 AM · MWK 60,000</option>
+            <option value="9:15 – 10:15 AM|60000|1 Hour" style="background:#1a1a2e;">9:15 – 10:15 AM · MWK 60,000</option>
+            <option value="10:15 – 11:15 AM|60000|1 Hour" style="background:#1a1a2e;">10:15 – 11:15 AM · MWK 60,000</option>
+            <option value="11:15 AM – 12:15 PM|60000|1 Hour" style="background:#1a1a2e;">11:15 AM – 12:15 PM · MWK 60,000</option>
+            <option value="1:00 – 2:00 PM|60000|1 Hour" style="background:#1a1a2e;">1:00 – 2:00 PM · MWK 60,000</option>
+            <option value="2:00 – 3:00 PM|60000|1 Hour" style="background:#1a1a2e;">2:00 – 3:00 PM · MWK 60,000</option>
+            <option value="3:00 – 4:00 PM|60000|1 Hour" style="background:#1a1a2e;">3:00 – 4:00 PM · MWK 60,000</option>
+            <option value="4:00 – 5:30 PM|75000|1.5 Hours" style="background:#1a1a2e;">4:00 – 5:30 PM · MWK 75,000</option>
+            <option value="5:30 – 7:00 PM|75000|1.5 Hours" style="background:#1a1a2e;">5:30 – 7:00 PM · MWK 75,000</option>
+            <option value="7:00 – 8:30 PM|75000|1.5 Hours" style="background:#1a1a2e;">7:00 – 8:30 PM · MWK 75,000</option>
+            <option value="8:30 – 10:00 PM|75000|1.5 Hours" style="background:#1a1a2e;">8:30 – 10:00 PM · MWK 75,000</option>
+            <option value="10:00 – 11:30 PM|75000|1.5 Hours" style="background:#1a1a2e;">10:00 – 11:30 PM · MWK 75,000</option>
+            <option value="11:30 PM – 1:00 AM|75000|1.5 Hours" style="background:#1a1a2e;">11:30 PM – 1:00 AM · MWK 75,000</option>
+          </select>
+        </div>
+        <button class="admin-btn admin-btn-green" onclick="adminOpenBookForMemberFromForm()" style="margin-top:4px;">
+          Select Member &amp; Book →
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── TAB: MEMBERS ── -->
+  <div id="atab-members" class="admin-tab-pane" style="padding-bottom:32px;">
+
+    <div class="admin-members-card">
+      <div class="admin-members-header">
+        <div class="admin-members-title">
+          <span style="font-size:16px;">🚫</span>
+          <span>No-Pay Offenders</span>
+        </div>
+        <button class="admin-refresh-btn" onclick="adminRenderNoPay()">↻ Refresh</button>
+      </div>
+      <div style="padding:12px 16px 4px;">
+        <p style="font-size:11px;color:rgba(255,255,255,0.3);line-height:1.7;margin:0 0 12px;">
+          Users with unpaid bookings. Block them to prevent future bookings until payment is settled.
+        </p>
+        <div id="admin-nopay-list" style="display:flex;flex-direction:column;gap:8px;padding-bottom:4px;">
+          <div style="text-align:center;color:rgba(255,255,255,0.3);padding:24px 0;font-size:13px;">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <!-- ADMIN LOGIN OVERLAY -->
@@ -3086,6 +3358,108 @@ function isAdminManualBlocked(court, dateVal, time) {
       <div id="admin-login-err" style="display:none;color:#ff6b6b;font-size:13px;text-align:center;font-weight:600;"></div>
       <button onclick="doAdminLogin()" style="background:linear-gradient(135deg,#e60000,#a80000);border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 20px rgba(204,0,0,0.4);">Enter Panel</button>
       <button onclick="document.getElementById('admin-login-overlay').style.display='none'" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:rgba(255,255,255,0.5);cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: BOOK FOR MEMBER MODAL -->
+<div id="admin-book-member-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);">
+  <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);border-radius:20px;max-width:420px;width:100%;padding:0;box-shadow:0 24px 60px rgba(0,0,0,0.8);overflow:hidden;max-height:90vh;overflow-y:auto;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#166534,#14532d);padding:18px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1;">
+      <div style="background:rgba(255,255,255,0.15);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📋</div>
+      <div style="flex:1;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;">Book for Member</div>
+        <div id="abm-slot-label" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:1px;"></div>
+      </div>
+      <button onclick="adminCloseBookForMember()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+      <!-- Slot summary card -->
+      <div id="abm-slot-card" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:12px;padding:14px 16px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Slot Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;">Court</div><div id="abm-court" style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-top:2px;"></div></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;">Date</div><div id="abm-date" style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-top:2px;"></div></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;">Time</div><div id="abm-time" style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#22c55e;margin-top:2px;"></div></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;">Fee</div><div id="abm-price" style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-top:2px;"></div></div>
+        </div>
+      </div>
+
+      <!-- Member search -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Search Member</div>
+        <div style="display:flex;gap:8px;">
+          <input id="abm-search-input" type="text" placeholder="Email or name…" autocomplete="off"
+            style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;font-family:'Barlow',sans-serif;"
+            onkeydown="if(event.key==='Enter')adminSearchMember()">
+          <button onclick="adminSearchMember()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;padding:11px 16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap;">Search</button>
+        </div>
+        <div id="abm-search-results" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
+      <!-- Walk-in toggle -->
+      <div style="text-align:center;">
+        <button onclick="adminToggleWalkIn()" id="abm-walkin-toggle" style="background:none;border:none;color:rgba(255,255,255,0.35);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;font-family:'Barlow',sans-serif;padding:0;">
+          Not registered? Book as walk-in guest →
+        </button>
+      </div>
+
+      <!-- Walk-in guest form (hidden by default) -->
+      <div id="abm-walkin-form" style="display:none;background:rgba(245,158,11,0.07);border:1.5px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;">👤 Walk-in Guest</div>
+          <button onclick="adminToggleWalkIn()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;">← Back to search</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <input id="abm-guest-name" type="text" placeholder="Full name *" autocomplete="off"
+            style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;font-family:'Barlow',sans-serif;width:100%;">
+          <input id="abm-guest-phone" type="tel" placeholder="Phone number (optional)" autocomplete="off"
+            style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;font-family:'Barlow',sans-serif;width:100%;">
+          <button onclick="adminSelectGuest()" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:11px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#000;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;">Confirm Guest</button>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.5;">Booking will be stored under a guest email (guest_&lt;phone&gt;@sxa.local). It won't appear on any user profile but will block the slot.</div>
+      </div>
+
+      <!-- Selected member display -->
+      <div id="abm-selected-member" style="display:none;background:rgba(34,197,94,0.1);border:1.5px solid rgba(34,197,94,0.35);border-radius:12px;padding:14px 16px;">
+        <div style="font-size:10px;font-weight:700;color:rgba(34,197,94,0.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">✓ Member Selected</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="abm-member-avatar" style="width:40px;height:40px;border-radius:50%;background:rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#22c55e;flex-shrink:0;"></div>
+          <div>
+            <div id="abm-member-name" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#fff;"></div>
+            <div id="abm-member-email" style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px;"></div>
+          </div>
+          <button onclick="adminClearMemberSelection()" style="margin-left:auto;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 8px;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;">Change</button>
+        </div>
+      </div>
+
+      <!-- Payment status -->
+      <div id="abm-payment-section" style="display:none;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Payment Status</div>
+        <div style="display:flex;gap:8px;">
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="abm-pay" value="paid" checked style="display:none;">
+            <div class="abm-pay-opt" style="background:rgba(34,197,94,0.1);border:1.5px solid rgba(34,197,94,0.4);border-radius:10px;padding:10px 12px;text-align:center;transition:all 0.2s;" onclick="adminSelectPayOpt(this,'paid')">
+              <div style="font-size:16px;">✅</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#22c55e;margin-top:4px;">Paid</div>
+            </div>
+          </label>
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="abm-pay" value="unpaid" style="display:none;">
+            <div class="abm-pay-opt" style="background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;text-align:center;transition:all 0.2s;" onclick="adminSelectPayOpt(this,'unpaid')">
+              <div style="font-size:16px;">⏳</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);margin-top:4px;">Unpaid</div>
+            </div>
+          </label>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.5;">Marking as unpaid will flag this member under No-Pay Offenders if they don't settle.</div>
+      </div>
+
+      <!-- Confirm button -->
+      <button id="abm-confirm-btn" onclick="adminConfirmBookForMember()" style="display:none;width:100%;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:12px;padding:15px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 20px rgba(34,197,94,0.35);">
+        Confirm Booking ✓
+      </button>
     </div>
   </div>
 </div>
@@ -3255,7 +3629,26 @@ function showBlockedModal(msg) {
   document.getElementById('blocked-user-overlay').style.display = 'flex';
 }
 
-// ── Admin: blocked users state ──
+// ── Admin tab switching ──
+function adminSwitchTab(tab) {
+  ['slots','bookings','members'].forEach(t => {
+    const pane = document.getElementById('atab-' + t);
+    const btn  = document.getElementById('atab-btn-' + t);
+    pane.classList.toggle('active', t === tab);
+    btn.classList.toggle('active', t === tab);
+  });
+  if (tab === 'members') adminRenderNoPay();
+}
+
+function adminToggleBlockForm() {
+  const body = document.getElementById('block-form-body');
+  const chevron = document.getElementById('block-form-chevron');
+  const open = body.style.display !== 'none' && body.style.display !== '';
+  body.style.display = open ? 'none' : 'flex';
+  chevron.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+
 let adminBlockedUsers = [];
 
 async function loadAdminBlockedUsers() {
@@ -3366,9 +3759,9 @@ function doAdminLogin() {
   document.getElementById('app-footer').style.display = 'none';
   // Load blocks from Supabase then render
   Promise.all([loadAdminBlocks(), loadAdminBlockedUsers()]).then(() => {
+    adminSwitchTab('slots');
     adminRender();
     adminRenderManualBlocks();
-    adminRenderNoPay();
   });
 }
 
@@ -3421,6 +3814,7 @@ async function adminRender() {
         <span style="font-size:12px;font-weight:700;color:${statusColor};">${statusLabel}</span>
         ${manualBlock ? `<button onclick="adminRemoveBlock('${court}','${dateVal}','${slot.time.replace(/'/g,"\\'")}')" style="background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#f59e0b;cursor:pointer;">Unblock</button>` : ''}
         ${!isBooked && !hardBlocked && !manualBlock ? `<button onclick="adminQuickBlock('${court}','${dateVal}','${slot.time.replace(/'/g,"\\'")}')" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#f59e0b;cursor:pointer;">Block</button>` : ''}
+        ${!isBooked && !hardBlocked && !manualBlock ? `<button onclick="adminOpenBookForMember('${court}','${dateVal}','${slot.time.replace(/'/g,"\\'")}',${slot.price},'${slot.duration}')" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#22c55e;cursor:pointer;">Book</button>` : ''}
       </div>`;
     container.appendChild(row);
   });
@@ -3489,7 +3883,228 @@ function adminRenderManualBlocks() {
   }).join('');
 }
 
-// Secret entry: triple-tap the SX logo on landing (or tap 5× the header)
+// ============ ADMIN: BOOK FOR MEMBER ============
+
+let _abmSlot = null; // { court, date, time, price, duration }
+let _abmMember = null; // { email, name }
+let _abmPayStatus = 'paid';
+
+function adminOpenBookForMember(court, date, time, price, duration) {
+  _abmSlot = { court, date, time, price: Number(price), duration };
+  _abmMember = null;
+  _abmPayStatus = 'paid';
+  // Populate slot info
+  const d = new Date(date + 'T00:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('abm-slot-label').textContent = court + ' · ' + days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
+  document.getElementById('abm-court').textContent = court;
+  document.getElementById('abm-date').textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  document.getElementById('abm-time').textContent = time;
+  document.getElementById('abm-price').textContent = 'MWK ' + Number(price).toLocaleString();
+  // Reset UI
+  document.getElementById('abm-search-input').value = '';
+  document.getElementById('abm-search-results').innerHTML = '';
+  document.getElementById('abm-selected-member').style.display = 'none';
+  document.getElementById('abm-payment-section').style.display = 'none';
+  document.getElementById('abm-confirm-btn').style.display = 'none';
+  // Reset payment radio to paid
+  document.querySelectorAll('input[name="abm-pay"]').forEach(r => r.checked = r.value === 'paid');
+  document.querySelectorAll('.abm-pay-opt').forEach((el, i) => {
+    if (i === 0) { el.style.background='rgba(34,197,94,0.1)'; el.style.borderColor='rgba(34,197,94,0.4)'; }
+    else { el.style.background='rgba(255,255,255,0.04)'; el.style.borderColor='rgba(255,255,255,0.1)'; }
+  });
+  document.getElementById('admin-book-member-overlay').style.display = 'flex';
+}
+
+function adminOpenBookForMemberFromForm() {
+  const court = document.getElementById('bfm-court').value;
+  const date  = document.getElementById('bfm-date').value;
+  const slotVal = document.getElementById('bfm-time').value;
+  if (!date) { toast('Pick a date first.', true); return; }
+  if (!slotVal) { toast('Pick a time slot.', true); return; }
+  const [time, priceStr, duration] = slotVal.split('|');
+  // Check if slot is actually available
+  const isHard = isHardBlocked(court, date, time);
+  const isManual = isAdminManualBlocked(court, date, time);
+  if (isHard || isManual) { toast('That slot is blocked and cannot be booked.', true); return; }
+  adminOpenBookForMember(court, date, time, Number(priceStr), duration);
+}
+
+function adminCloseBookForMember() {
+  document.getElementById('admin-book-member-overlay').style.display = 'none';
+  // Reset walk-in form if it was open
+  document.getElementById('abm-walkin-form').style.display = 'none';
+  document.getElementById('abm-walkin-toggle').textContent = 'Not registered? Book as walk-in guest →';
+  document.getElementById('abm-guest-name').value = '';
+  document.getElementById('abm-guest-phone').value = '';
+  _abmSlot = null; _abmMember = null;
+}
+
+async function adminSearchMember() {
+  const query = document.getElementById('abm-search-input').value.trim().toLowerCase();
+  const container = document.getElementById('abm-search-results');
+  if (!query || query.length < 2) { toast('Enter at least 2 characters.', true); return; }
+  container.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;padding:10px;">Searching…</div>';
+  try {
+    // Search by email exact match first, then by name ilike
+    const byEmail = SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(query) + '&select=email,name,phone,avatar';
+    const byName  = SUPABASE_URL + '/rest/v1/users?name=ilike.*' + encodeURIComponent(query) + '*&select=email,name,phone,avatar&limit=8';
+    const [r1, r2] = await Promise.all([
+      fetch(byEmail, { headers: SUPABASE_HEADERS }).then(r => r.json()).catch(() => []),
+      fetch(byName,  { headers: SUPABASE_HEADERS }).then(r => r.json()).catch(() => [])
+    ]);
+    // Merge + deduplicate
+    const seen = new Set();
+    const results = [...r1, ...r2].filter(u => { if (seen.has(u.email)) return false; seen.add(u.email); return true; });
+    if (!results.length) {
+      container.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;padding:10px;">No members found for "' + query + '"</div>';
+      return;
+    }
+    container.innerHTML = results.map(u => {
+      const initials = u.name ? u.name.trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase() : '?';
+      return `<div onclick="adminSelectMember('${u.email.replace(/'/g,"\\'")}','${(u.name||'').replace(/'/g,"\\'")}','${(u.avatar||'').replace(/'/g,"\\'")}')"
+        style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;cursor:pointer;transition:background 0.2s;"
+        onmouseover="this.style.background='rgba(34,197,94,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+        <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">${initials}</div>
+        <div style="min-width:0;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#fff;">${u.name||'—'}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email}</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;font-weight:700;color:#22c55e;">Select →</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div style="font-size:12px;color:#ff6b6b;text-align:center;padding:10px;">Search failed. Check connection.</div>';
+  }
+}
+
+function adminSelectMember(email, name, avatar, isGuest) {
+  _abmMember = { email, name, isGuest: !!isGuest };
+  document.getElementById('abm-search-results').innerHTML = '';
+  document.getElementById('abm-search-input').value = '';
+  // Show selected member card — style differently for guests
+  const displayName = name || '—';
+  const initials = displayName.replace('(Walk-in)','').trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase() || '?';
+  const cardEl = document.getElementById('abm-selected-member');
+  const avatarEl = document.getElementById('abm-member-avatar');
+  if (isGuest) {
+    cardEl.style.background = 'rgba(245,158,11,0.1)';
+    cardEl.style.borderColor = 'rgba(245,158,11,0.4)';
+    cardEl.querySelector('div:first-child').textContent = '👤 Walk-in Guest Selected';
+    cardEl.querySelector('div:first-child').style.color = 'rgba(245,158,11,0.8)';
+    avatarEl.style.background = 'rgba(245,158,11,0.25)';
+    avatarEl.style.color = '#f59e0b';
+  } else {
+    cardEl.style.background = 'rgba(34,197,94,0.1)';
+    cardEl.style.borderColor = 'rgba(34,197,94,0.35)';
+    cardEl.querySelector('div:first-child').textContent = '✓ Member Selected';
+    cardEl.querySelector('div:first-child').style.color = 'rgba(34,197,94,0.7)';
+    avatarEl.style.background = 'rgba(34,197,94,0.3)';
+    avatarEl.style.color = '#22c55e';
+  }
+  avatarEl.textContent = initials;
+  document.getElementById('abm-member-name').textContent = displayName;
+  document.getElementById('abm-member-email').textContent = isGuest ? 'Walk-in · no account' : email;
+  cardEl.style.display = 'block';
+  document.getElementById('abm-payment-section').style.display = 'block';
+  document.getElementById('abm-confirm-btn').style.display = 'block';
+}
+
+function adminToggleWalkIn() {
+  const form    = document.getElementById('abm-walkin-form');
+  const toggle  = document.getElementById('abm-walkin-toggle');
+  const showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  toggle.textContent = showing ? 'Not registered? Book as walk-in guest →' : '← Back to member search';
+  // Clear state when switching modes
+  if (!showing) {
+    // Switching TO walk-in — clear any member selection
+    adminClearMemberSelection();
+    document.getElementById('abm-search-results').innerHTML = '';
+    document.getElementById('abm-search-input').value = '';
+  } else {
+    // Switching BACK to search — clear guest fields
+    document.getElementById('abm-guest-name').value = '';
+    document.getElementById('abm-guest-phone').value = '';
+    adminClearMemberSelection();
+  }
+}
+
+function adminSelectGuest() {
+  const name  = document.getElementById('abm-guest-name').value.trim();
+  const phone = document.getElementById('abm-guest-phone').value.trim();
+  if (!name) { toast("Enter the guest's name.", true); return; }
+  // Build a unique placeholder email to slot into user_email
+  const safeName  = name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
+  const safePhone = phone ? phone.replace(/\D/g, '') : Date.now();
+  const guestEmail = 'guest_' + safeName + '_' + safePhone + '@sxa.local';
+  // Hide walk-in form, show selected card
+  document.getElementById('abm-walkin-form').style.display = 'none';
+  document.getElementById('abm-walkin-toggle').textContent = 'Not registered? Book as walk-in guest →';
+  adminSelectMember(guestEmail, name + ' (Walk-in)', '', true);
+}
+
+function adminClearMemberSelection() {
+  _abmMember = null;
+  document.getElementById('abm-selected-member').style.display = 'none';
+  document.getElementById('abm-payment-section').style.display = 'none';
+  document.getElementById('abm-confirm-btn').style.display = 'none';
+}
+
+function adminSelectPayOpt(el, value) {
+  _abmPayStatus = value;
+  document.querySelectorAll('.abm-pay-opt').forEach(o => {
+    o.style.background = 'rgba(255,255,255,0.04)';
+    o.style.borderColor = 'rgba(255,255,255,0.1)';
+    o.querySelector('div:last-child').style.color = 'rgba(255,255,255,0.5)';
+  });
+  el.style.background = value === 'paid' ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)';
+  el.style.borderColor = value === 'paid' ? 'rgba(34,197,94,0.5)' : 'rgba(245,158,11,0.5)';
+  el.querySelector('div:last-child').style.color = value === 'paid' ? '#22c55e' : '#f59e0b';
+}
+
+async function adminConfirmBookForMember() {
+  if (!_abmSlot || !_abmMember) { toast('Missing slot or member.', true); return; }
+  const btn = document.getElementById('abm-confirm-btn');
+  btn.textContent = 'Saving…'; btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none';
+  // Final live check — make sure slot isn't already taken
+  let live = [];
+  try { live = await supaFetch(_abmSlot.court, _abmSlot.date); } catch(e) {}
+  const taken = live.find(b => b.time === _abmSlot.time);
+  if (taken) {
+    toast('Slot was just taken — pick another.', true);
+    btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+    adminCloseBookForMember(); adminRender(); return;
+  }
+  const booking = {
+    name:           _abmMember.name.replace(' (Walk-in)', ''),
+    date:           _abmSlot.date + 'T00:00:00',
+    court:          _abmSlot.court,
+    time:           _abmSlot.time,
+    price:          _abmSlot.price,
+    duration:       _abmSlot.duration,
+    user_email:     _abmMember.email,
+    user_name:      _abmMember.name.replace(' (Walk-in)', ''),
+    payment_status: _abmPayStatus,
+    payment_method: _abmMember.isGuest ? 'admin_walkin' : 'admin_booking'
+  };
+  try {
+    await supaInsert(booking);
+    // Update local cache so admin slot view refreshes instantly
+    const bookedAt = new Date().toISOString();
+    const all = DB.bookings();
+    all.push({ court: booking.court, date: booking.date, time: booking.time, price: booking.price, duration: booking.duration, userEmail: _abmMember.email, bookedAt });
+    DB.saveBookings(all);
+    toast('✓ Booking created for ' + _abmMember.name);
+    adminCloseBookForMember();
+    adminRender();
+  } catch(e) {
+    toast('Failed to save booking: ' + e.message, true);
+    btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+  }
+}
+
 let _adminTapCount = 0, _adminTapTimer = null;
 function adminSecretTap() {
   _adminTapCount++;
