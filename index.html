@@ -1701,6 +1701,28 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
       </div>
     </button>
 
+    <!-- ECO BANK MALAWI -->
+    <button class="pay-method-btn" style="background:linear-gradient(135deg,#003366,#00509e);box-shadow:0 6px 20px rgba(0,80,158,0.38);" onclick="payWithEcoBank()">
+      <div class="pay-method-logo" style="background:rgba(255,255,255,0.15);border-radius:14px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="2"/>
+          <path d="M9 9h6m-6 4h6"/>
+        </svg>
+      </div>
+      <div class="pay-method-info">
+        <div class="pay-method-name">Eco Bank Malawi</div>
+        <div class="pay-method-num">Account: 5445000009387</div>
+      </div>
+      <div class="pay-method-arrow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </button>
+
+  </div>
+
+  <!-- PAYMENT PROOF NOTICE -->
+  <div class="confirm-note" style="background:rgba(255,193,7,0.15);border-left:4px solid #ffc107;margin-top:18px;">
+    ℹ️ Please remember to provide/show your proof of payment at the reception before starting your session. Thank you.
   </div>
 
   <!-- REF ROW -->
@@ -1793,6 +1815,42 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
           Open Dialer → *211#
         </button>
         <button class="pay-copy-btn" onclick="copyToClipboard('+265998451609','Number copied!')">Copy Number</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ECO BANK MALAWI MODAL -->
+  <div class="pay-modal-overlay" id="modal-ecobank" onclick="if(event.target===this)closePayModal('modal-ecobank')">
+    <div class="pay-modal-sheet">
+      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,#003366,#00509e)">
+        <div class="pay-modal-icon">
+          <div style="background:rgba(255,255,255,0.15);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2"/>
+              <path d="M9 9h6m-6 4h6"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="pay-modal-brand">Eco Bank Malawi</div>
+          <div class="pay-modal-sub">Bank transfer details</div>
+        </div>
+        <button class="pay-modal-close" onclick="closePayModal('modal-ecobank')">✕</button>
+      </div>
+      <div class="pay-modal-body">
+        <div class="pay-dial-number">5445000009387</div>
+        <div class="pay-modal-steps">
+          <div class="pay-step"><span class="ps-num">1</span><span>Use your bank app or visit Eco Bank</span></div>
+          <div class="pay-step"><span class="ps-num">2</span><span>Transfer to account: <strong>5445000009387</strong></span></div>
+          <div class="pay-step"><span class="ps-num">3</span><span>Account name: <strong>Sports X Arena</strong></span></div>
+          <div class="pay-step"><span class="ps-num">4</span><span>Amount: <strong id="ecobank-amount">—</strong></span></div>
+          <div class="pay-step"><span class="ps-num">5</span><span>Reference: <strong id="ecobank-ref">—</strong></span></div>
+        </div>
+        <button class="pay-copy-btn" onclick="copyToClipboard('5445000009387','Account number copied!')" style="background:linear-gradient(135deg,#003366,#00509e);box-shadow:0 4px 14px rgba(0,80,158,0.35);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 4h2a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          Copy Account Number
+        </button>
+        <button class="pay-copy-btn" onclick="copyToClipboard('Sports X Arena','Name copied!')" style="margin-top:10px;">Copy Account Name</button>
       </div>
     </div>
   </div>
@@ -2476,6 +2534,10 @@ async function confirmBooking() {
 
   // ── Blocking feature removed - All members can book regardless of payment status ──
 
+  // Check if current user already booked this exact slot
+  const userAlreadyBooked = DB.bookings().find(b => b.court===selectedCourt && b.date.startsWith(pendingDate) && b.time===selectedSlot.time && b.userEmail===CU.email);
+  if (userAlreadyBooked) { toast('You already have this slot booked!', true); return; }
+
   // Final guard — re-check Supabase live before inserting
   let liveBookings = [];
   try {
@@ -2487,6 +2549,10 @@ async function confirmBooking() {
   if (already) { toast('This slot was just taken — please choose another.', true); showScreen('booking','book'); renderSlots(); return; }
 
   const payMethod = window._selectedPayMethod || 'airtel';
+  let paymentMethodValue = 'airtel_money';
+  if (payMethod === 'property') paymentMethodValue = 'pay_at_property';
+  else if (payMethod === 'ecobank') paymentMethodValue = 'ecobank_malawi';
+
   const booking = {
     name:           CU.name,
     date:           pendingDate + 'T00:00:00',
@@ -2496,8 +2562,7 @@ async function confirmBooking() {
     duration:       selectedSlot.duration,
     user_email:     CU.email,
     user_name:      CU.name,
-    payment_status: payMethod === 'property' ? 'unpaid' : 'paid',
-    payment_method: payMethod === 'property' ? 'pay_at_property' : 'airtel_money'
+    payment_method: paymentMethodValue
   };
 
 
@@ -2512,7 +2577,16 @@ async function confirmBooking() {
   // Also save locally so UI stays in sync
   const bookedAt = new Date().toISOString();
   const all = DB.bookings();
-  all.push({ court:booking.court, date:booking.date, time:booking.time, price:booking.price, duration:booking.duration, session:booking.session, userEmail:CU.email, bookedAt });
+  all.push({ 
+    court: booking.court, 
+    date: booking.date, 
+    time: booking.time, 
+    price: booking.price, 
+    duration: booking.duration, 
+    userEmail: CU.email, 
+    bookedAt: bookedAt,
+    paymentMethod: paymentMethodValue
+  });
   DB.saveBookings(all);
 
   toast('✓ Booking Confirmed!');
@@ -2541,7 +2615,8 @@ async function refreshAccount() {
         bookedAt:      r.booked_at,
         paymentMethod: r.payment_method
       }));
-      // Merge: keep other users' local bookings, replace this user's with fresh data
+      // Replace ALL of current user's bookings with fresh data from Supabase (authoritative source)
+      // Keep other users' local bookings, replace this user's with fresh data
       const others = DB.bookings().filter(b => b.userEmail !== CU.email);
       DB.saveBookings([...others, ...fresh]);
     }
@@ -2656,8 +2731,8 @@ async function cancelBooking(idx) {
     return;
   }
 
-  // Remove from local cache
-  const all = DB.bookings().filter(x => !(x.court===b.court && x.time===b.time && x.userEmail===CU.email && x.date===b.date));
+  // Remove from local cache - match on court, time, date, and email (unique booking identifier)
+  const all = DB.bookings().filter(x => !(x.court===b.court && x.time===b.time && x.userEmail===CU.email && (x.date===b.date || x.date.split('T')[0]===b.date.split('T')[0])));
   DB.saveBookings(all);
   toast('Booking cancelled ✓');
   renderMyBookings();
@@ -2771,6 +2846,15 @@ function payAtProperty() {
   document.getElementById('property-amount').textContent = fee;
   document.getElementById('property-ref').textContent    = ref;
   document.getElementById('modal-property').classList.add('open');
+}
+function payWithEcoBank() {
+  window._selectedPayMethod = 'ecobank';
+  const pending = window._pendingBooking || {};
+  const fee = pending.fee || '—';
+  const ref = pending.ref || document.getElementById('c-ref').textContent || '—';
+  document.getElementById('ecobank-amount').textContent = fee;
+  document.getElementById('ecobank-ref').textContent    = ref;
+  document.getElementById('modal-ecobank').classList.add('open');
 }
 function closePayModal(id) { document.getElementById(id).classList.remove('open'); }
 function copyToClipboard(text, msg) {
@@ -3538,10 +3622,6 @@ async function supaBlockDelete(court, date, time) {
 
 async function loadAdminBlocks() {
   adminManualBlocks = []; // BLOCKING DISABLED
-} catch(e) {
-    console.warn('Could not load blocks from Supabase, falling back to localStorage', e);
-    adminManualBlocks = JSON.parse(localStorage.getItem('sxa_admin_blocks') || '[]');
-  }
 }
 
 // ── Supabase helpers for blocked_users table - DISABLED ──
@@ -3595,10 +3675,6 @@ let adminBlockedUsers = [];
 
 async function loadAdminBlockedUsers() {
   window.adminBlockedUsers = []; // BLOCKING DISABLED
-} catch(e) {
-    console.warn('Could not load blocked users:', e);
-    adminBlockedUsers = [];
-  }
 }
 
 async function adminBlockUser(user_email, user_name) {
@@ -3950,7 +4026,6 @@ async function adminConfirmBookForMember() {
     duration:       _abmSlot.duration,
     user_email:     _abmMember.email,
     user_name:      _abmMember.name.replace(' (Walk-in)', ''),
-    payment_status: _abmPayStatus,
     payment_method: _abmMember.isGuest ? 'admin_walkin' : 'admin_booking'
   };
   try {
