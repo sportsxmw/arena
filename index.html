@@ -2128,7 +2128,7 @@ const DB = {
 let CU = null;  // current user: { email, name, phone, avatar }
 let selectedCourt = 'Padel Court 1';
 let selectedSlot  = null;
-let adminManualBlocks = []; // loaded from Supabase on login
+let adminManualBlocks = []; // BLOCKING DISABLED - all arrays empty
 
 // isAdminManualBlocked declared at top level
 let pendingDate   = null;
@@ -2336,31 +2336,7 @@ function openBooking(court) {
 
 // ============ HARDCODED BLOCKED SLOTS ============
 function isHardBlocked(court, dateVal, slotTime) {
-  const t1 = GENTS[1].time; // 5:30 – 7:00 PM  (was GENTS[4])
-  const t2 = GENTS[2].time; // 7:00 – 8:30 PM  (was GENTS[5])
-  const t3 = GENTS[3].time; // 8:30 – 10:00 PM (was GENTS[6])
-
-  // Rule 1 — Court 1: Mon/Wed/Thu 5:30–7:00 PM, 18 May–31 Jul 2026
-  const R1_DATES = new Set(['2026-05-18','2026-05-20','2026-05-21','2026-05-25','2026-05-27','2026-05-28','2026-06-01','2026-06-03','2026-06-04','2026-06-08','2026-06-10','2026-06-11','2026-06-15','2026-06-17','2026-06-18','2026-06-22','2026-06-24','2026-06-25','2026-06-29','2026-07-01','2026-07-02','2026-07-06','2026-07-08','2026-07-09','2026-07-13','2026-07-15','2026-07-16','2026-07-20','2026-07-22','2026-07-23','2026-07-27','2026-07-29','2026-07-30']);
-  if (court === 'Padel Court 1' && slotTime === t1 && R1_DATES.has(dateVal)) return true;
-
-  // Rule 2 — Court 1: Wed 8:30–10:00 PM, June 2026
-  const R2_DATES = new Set(['2026-06-03','2026-06-10','2026-06-17','2026-06-24']);
-  if (court === 'Padel Court 1' && slotTime === t3 && R2_DATES.has(dateVal)) return true;
-
-  // Rule 3 — Court 1: Mon/Wed/Thu 8:30–10:00 PM, 18 May–31 Dec 2026
-  const R3_DATES = new Set(['2026-05-18','2026-05-20','2026-05-21','2026-05-25','2026-05-27','2026-05-28','2026-06-01','2026-06-03','2026-06-04','2026-06-08','2026-06-10','2026-06-11','2026-06-15','2026-06-17','2026-06-18','2026-06-22','2026-06-24','2026-06-25','2026-06-29','2026-07-01','2026-07-02','2026-07-06','2026-07-08','2026-07-09','2026-07-13','2026-07-15','2026-07-16','2026-07-20','2026-07-22','2026-07-23','2026-07-27','2026-07-29','2026-07-30','2026-08-03','2026-08-05','2026-08-06','2026-08-10','2026-08-12','2026-08-13','2026-08-17','2026-08-19','2026-08-20','2026-08-24','2026-08-26','2026-08-27','2026-08-31','2026-09-02','2026-09-03','2026-09-07','2026-09-09','2026-09-10','2026-09-14','2026-09-16','2026-09-17','2026-09-21','2026-09-23','2026-09-24','2026-09-28','2026-09-30','2026-10-01','2026-10-05','2026-10-07','2026-10-08','2026-10-12','2026-10-14','2026-10-15','2026-10-19','2026-10-21','2026-10-22','2026-10-26','2026-10-28','2026-10-29','2026-11-02','2026-11-04','2026-11-05','2026-11-09','2026-11-11','2026-11-12','2026-11-16','2026-11-18','2026-11-19','2026-11-23','2026-11-25','2026-11-26','2026-11-30','2026-12-02','2026-12-03','2026-12-07','2026-12-09','2026-12-10','2026-12-14','2026-12-16','2026-12-17','2026-12-21','2026-12-23','2026-12-24','2026-12-28','2026-12-30','2026-12-31']);
-  if (court === 'Padel Court 1' && slotTime === t3 && R3_DATES.has(dateVal)) return true;
-
-  // Rule 4 — Both Courts: Mon/Thu 8:30–10:00 PM, 18 May–31 Dec 2026
-  const R4_DATES = new Set(['2026-05-18','2026-05-21','2026-05-25','2026-05-28','2026-06-01','2026-06-04','2026-06-08','2026-06-11','2026-06-15','2026-06-18','2026-06-22','2026-06-25','2026-06-29','2026-07-02','2026-07-06','2026-07-09','2026-07-13','2026-07-16','2026-07-20','2026-07-23','2026-07-27','2026-07-30','2026-08-03','2026-08-06','2026-08-10','2026-08-13','2026-08-17','2026-08-20','2026-08-24','2026-08-27','2026-08-31','2026-09-03','2026-09-07','2026-09-10','2026-09-14','2026-09-17','2026-09-21','2026-09-24','2026-09-28','2026-10-01','2026-10-05','2026-10-08','2026-10-12','2026-10-15','2026-10-19','2026-10-22','2026-10-26','2026-10-29','2026-11-02','2026-11-05','2026-11-09','2026-11-12','2026-11-16','2026-11-19','2026-11-23','2026-11-26','2026-11-30','2026-12-03','2026-12-07','2026-12-10','2026-12-14','2026-12-17','2026-12-21','2026-12-24','2026-12-28','2026-12-31']);
-  if (['Padel Court 1','Padel Court 2'].includes(court) && slotTime === t3 && R4_DATES.has(dateVal)) return true;
-
-  // Rule 5 — Court 1: Mon 7:00–8:30 PM, 18 May–31 Dec 2026
-  const R5_DATES = new Set(['2026-05-18','2026-05-25','2026-06-01','2026-06-08','2026-06-15','2026-06-22','2026-06-29','2026-07-06','2026-07-13','2026-07-20','2026-07-27','2026-08-03','2026-08-10','2026-08-17','2026-08-24','2026-08-31','2026-09-07','2026-09-14','2026-09-21','2026-09-28','2026-10-05','2026-10-12','2026-10-19','2026-10-26','2026-11-02','2026-11-09','2026-11-16','2026-11-23','2026-11-30','2026-12-07','2026-12-14','2026-12-21','2026-12-28']);
-  if (court === 'Padel Court 1' && slotTime === t2 && R5_DATES.has(dateVal)) return true;
-
-  return false;
+  return false; // ALL BLOCKING REMOVED
 }
 
 async function renderSlots() {
@@ -3116,7 +3092,7 @@ showScreen = function(id, nav) {
 
 // Make isAdminManualBlocked available in this script scope
 function isAdminManualBlocked(court, dateVal, time) {
-  return adminManualBlocks.some(b => b.court === court && b.date === dateVal && b.time === time);
+  return false; // BLOCKING DISABLED
 }
 
 </script>
@@ -3549,25 +3525,20 @@ const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
 
 // ── Supabase helpers for blocked_slots table - DISABLED ──
 async function supaBlocksFetch() {
-  // Function disabled - returning empty array
-  // Blocked slots table is no longer queried or used
-  return [];
+  return []; // BLOCKING DISABLED
 }
 
 async function supaBlockInsert(court, date, time) {
-  // Function disabled - slot blocking to Supabase is not allowed
-  return Promise.resolve();
+  return null; // BLOCKING DISABLED
 }
 
 async function supaBlockDelete(court, date, time) {
-  // Function disabled - slot unblocking from Supabase is not allowed
-  return Promise.resolve();
+  return null; // BLOCKING DISABLED
 }
 
 async function loadAdminBlocks() {
-  try {
-    adminManualBlocks = await supaBlocksFetch();
-  } catch(e) {
+  adminManualBlocks = []; // BLOCKING DISABLED
+} catch(e) {
     console.warn('Could not load blocks from Supabase, falling back to localStorage', e);
     adminManualBlocks = JSON.parse(localStorage.getItem('sxa_admin_blocks') || '[]');
   }
@@ -3623,9 +3594,8 @@ function adminToggleBlockForm() {
 let adminBlockedUsers = [];
 
 async function loadAdminBlockedUsers() {
-  try {
-    adminBlockedUsers = await supaBlockedUsersFetch();
-  } catch(e) {
+  window.adminBlockedUsers = []; // BLOCKING DISABLED
+} catch(e) {
     console.warn('Could not load blocked users:', e);
     adminBlockedUsers = [];
   }
