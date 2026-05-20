@@ -4369,26 +4369,43 @@ async function adminConfirmBookForMember() {
   if (!_abmSlot || !_abmMember) { toast('Missing slot or member.', true); return; }
   const btn = document.getElementById('abm-confirm-btn');
   btn.textContent = 'Saving…'; btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none';
-  // Final live check — make sure slot isn't already taken
-  let live = [];
-  try { live = await supaFetch(_abmSlot.court, _abmSlot.date); } catch(e) {}
-  const taken = live.find(b => b.time === _abmSlot.time);
-  if (taken) {
-    toast('Slot was just taken — pick another.', true);
-    btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
-    adminCloseBookForMember(); adminRender(); return;
+
+  // Final live check — fetch directly from Supabase, skip local cache
+  try {
+    const checkUrl = SUPABASE_URL + '/rest/v1/Bookings?court=eq.' + encodeURIComponent(_abmSlot.court)
+      + '&date=eq.' + encodeURIComponent(_abmSlot.date + 'T00:00:00')
+      + '&time=eq.' + encodeURIComponent(_abmSlot.time)
+      + '&select=id&limit=1';
+    const checkRes = await fetch(checkUrl, { headers: SUPABASE_HEADERS });
+    if (checkRes.ok) {
+      const checkData = await checkRes.json();
+      if (checkData.length > 0) {
+        toast('Slot is already booked — pick another.', true);
+        btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+        adminCloseBookForMember(); adminRender(); return;
+      }
+    }
+  } catch(e) {
+    console.warn('Admin slot conflict check failed, proceeding anyway:', e.message);
   }
+
+  const cleanName = _abmMember.name.replace(' (Walk-in)', '');
+  const dateVal   = _abmSlot.date.includes('T') ? _abmSlot.date : _abmSlot.date + 'T00:00:00';
   const booking = {
-    name:           _abmMember.name.replace(' (Walk-in)', ''),
-    date:           _abmSlot.date + 'T00:00:00',
+    name:           cleanName,
+    date:           dateVal,
     court:          _abmSlot.court,
     time:           _abmSlot.time,
     price:          _abmSlot.price,
     duration:       _abmSlot.duration,
     user_email:     _abmMember.email,
-    user_name:      _abmMember.name.replace(' (Walk-in)', ''),
-    payment_method: _abmMember.isGuest ? 'admin_walkin' : 'admin_booking'
+    user_name:      cleanName,
+    payment_method: _abmMember.isGuest ? 'admin_walkin' : 'admin_booking',
+    payment_status: _abmPayStatus || 'paid'
   };
+
+  console.log('Admin booking payload:', JSON.stringify(booking));
+
   try {
     await supaInsert(booking);
     // Update local cache so admin slot view refreshes instantly
@@ -4400,7 +4417,8 @@ async function adminConfirmBookForMember() {
     adminCloseBookForMember();
     adminRender();
   } catch(e) {
-    toast('Failed to save booking: ' + e.message, true);
+    console.error('Admin booking insert failed:', e.message);
+    toast('Failed: ' + e.message, true);
     btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
   }
 }
