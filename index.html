@@ -404,6 +404,7 @@ body { font-family: var(--font-b); background: var(--bg); color: #111; min-heigh
   font-family: var(--font-d); font-size: 11px; font-weight: 700;
   color: #aaa; text-transform: uppercase; letter-spacing: 2px;
   margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  width: 100%;
 }
 .date-strip-range {
   font-weight: 500; color: #ccc; letter-spacing: 0.5px; font-size: 11px;
@@ -889,6 +890,7 @@ body.dark .pay-modal-sheet { background: #151820; border-color: #252836; }
 /* ── Date strip ── */
 body.dark .date-strip-wrap { background: #151820; border-color: #252836; }
 body.dark .date-strip-label { color: #555; }
+body.dark .date-strip-label button { background: #252836; border-color: #3a3f4d; color: #aaa; }
 body.dark .date-pill { background: #1c1f2a; }
 body.dark .date-pill:hover { background: #252836; }
 body.dark .dp-num { color: #e8e8f0; }
@@ -2107,9 +2109,14 @@ async function supaFetch(court, date) {
     + '&date=gte.'  + encodeURIComponent(dateFrom)
     + '&date=lte.'  + encodeURIComponent(dateTo)
     + '&time=not.is.null'
-    + '&select=court,date,time,price,duration,user_email';
+    + '&select=court,date,time,price,duration,user_email'
+    + '&t=' + Date.now(); // Cache buster
   const res = await fetch(url, {
-    headers: SUPABASE_HEADERS
+    headers: {
+      ...SUPABASE_HEADERS,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache'
+    }
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const rows = await res.json();
@@ -2378,18 +2385,26 @@ function selectDatePill(val) {
     const d = new Date(min); d.setDate(min.getDate() + i);
     if (toStr(d) === val) p.classList.add('active');
   });
+  // Ensure renderSlots loads the new date's slots
+  setTimeout(() => renderSlots().catch(e => toast(e.message, true)), 10);
+}
+
+function refreshBookingSlots() {
+  // Force refresh current slots from Supabase
   renderSlots().catch(e => toast(e.message, true));
+  toast('Refreshing slots...', false);
 }
 
 function openBooking(court) {
   selectedCourt = court;
   document.getElementById('booking-court-title').textContent = court;
   const { min } = getBookingWindow();
-  const defaultVal = toStr(min); // default to tomorrow
+  const defaultVal = toStr(min); // default to today
   document.getElementById('booking-date').value = defaultVal;
   buildDateStrip(defaultVal);
-  renderSlots().catch(e => toast(e.message, true));
   showScreen('booking','book');
+  // Delay renderSlots to ensure DOM is updated after screen change
+  setTimeout(() => renderSlots().catch(e => toast(e.message, true)), 50);
 }
 
 // ============ HARDCODED BLOCKED SLOTS ============
@@ -2401,16 +2416,16 @@ async function renderSlots() {
   const container = document.getElementById('slots-container');
   const dateVal   = document.getElementById('booking-date').value;
 
-  // Enforce rolling 7-day window
+  // Enforce rolling 7-day window using string comparison to avoid timezone issues
   const { min, max } = getBookingWindow();
-  const [py, pm, pd] = dateVal.split('-').map(Number);
-  const picked = new Date(py, pm - 1, pd);
+  const minStr = toStr(min);
+  const maxStr = toStr(max);
 
-  if (picked < min) {
+  if (dateVal < minStr) {
     container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">This date has passed. Please select today or a future date.</div>';
     return;
   }
-  if (picked > max) {
+  if (dateVal > maxStr) {
     container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#cc0000;font-size:14px;font-weight:700">Bookings are only available 7 days ahead. Check back on Sunday for the next week.</div>';
     return;
   }
@@ -3009,7 +3024,7 @@ function toast(msg, isErr=false) {
   observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
 })();
 
-// Auto-login from saved session
+// Auto-login from saved session and default to home
 (async function() {
   const saved = DB.session();
   if (saved && saved.email) {
@@ -3019,22 +3034,23 @@ function toast(msg, isErr=false) {
       if (user) {
         CU = { email: user.email, name: user.name, phone: user.phone, avatar: user.avatar, gender: user.gender };
         DB.saveSession(CU);
-        showScreen('home', 'home');
-        updateLandingButtons();
         toast('Welcome back, ' + CU.name.split(' ')[0] + '! 👋');
-        return;
       }
     } catch(e) {}
     // Fallback to localStorage
-    const users = DB.users();
-    if (users[saved.email]) {
-      CU = { email: saved.email, ...users[saved.email] };
-      showScreen('home', 'home');
-      toast('Welcome back, ' + CU.name.split(' ')[0] + '! 👋');
-    } else {
-      DB.clearSession();
+    if (!CU) {
+      const users = DB.users();
+      if (users[saved.email]) {
+        CU = { email: saved.email, ...users[saved.email] };
+        toast('Welcome back, ' + CU.name.split(' ')[0] + '! 👋');
+      } else {
+        DB.clearSession();
+      }
     }
   }
+  // Always show home screen on app open
+  showScreen('home', 'home');
+  updateLandingButtons();
 })();
 
 // ============ LANDING VIDEO MUTE TOGGLE ============
@@ -3359,6 +3375,19 @@ window.addEventListener('beforeinstallprompt', function(e) {
       Create a booking on behalf of a registered member or walk-in guest. Pick a slot then search for the member.
     </div>
 
+    <!-- Existing Bookings Display -->
+    <div class="admin-card" style="margin-bottom:16px;">
+      <div class="admin-card-header">
+        <span class="card-icon">📅</span>
+        <h3>Recent Bookings</h3>
+        <button class="admin-refresh-btn" onclick="adminLoadBookings()" style="margin-left:auto;">🔄 Refresh</button>
+      </div>
+      <div id="admin-existing-bookings" style="padding:0;">
+        <div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 16px;font-size:13px;">Loading bookings...</div>
+      </div>
+    </div>
+
+    <!-- New Booking Form -->
     <div class="admin-card">
       <div class="admin-card-header">
         <span class="card-icon">📋</span>
@@ -3407,7 +3436,16 @@ window.addEventListener('beforeinstallprompt', function(e) {
 
   <!-- ── TAB: MEMBERS ── -->
   <div id="atab-members" class="admin-tab-pane" style="display:none;padding-bottom:32px;">
-    <!-- Members/No-Pay tab disabled - All users can now book without restrictions -->
+    
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <input type="text" id="members-search" placeholder="Search members..." class="admin-input"
+        style="flex:1;" onkeyup="adminFilterMembers()">
+      <button class="admin-refresh-btn" onclick="adminRenderMembers()" style="padding:10px 14px;">🔄 Refresh</button>
+    </div>
+
+    <div id="members-list-container" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">Loading members...</div>
+    </div>
 
   </div>
 
@@ -3659,7 +3697,8 @@ function adminSwitchTab(tab) {
     pane.classList.toggle('active', t === tab);
     btn.classList.toggle('active', t === tab);
   });
-  if (tab === 'members') adminRenderNoPay();
+  if (tab === 'members') adminRenderMembers();
+  if (tab === 'bookings') adminLoadBookings();
 }
 
 function adminToggleBlockForm() {
@@ -3691,6 +3730,178 @@ async function adminRenderNoPay() {
   // Function disabled - No-Pay blocking feature removed
   // All users can now book without restrictions regardless of payment status
   return;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MEMBERS MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════
+
+let adminAllMembers = [];
+
+async function adminRenderMembers() {
+  const container = document.getElementById('members-list-container');
+  
+  try {
+    // Get all users from localStorage
+    const users = DB.users();
+    adminAllMembers = Object.values(users).filter(u => u && u.email);
+    
+    if (adminAllMembers.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">No members registered yet</div>';
+      return;
+    }
+
+    // Fetch blocked status from Supabase
+    try {
+      const blockedRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/blocked_members?select=email`,
+        {
+          method: 'GET',
+          headers: SUPABASE_HEADERS
+        }
+      );
+      
+      if (blockedRes.ok) {
+        const blockedList = await blockedRes.json();
+        const blockedEmails = blockedList.map(b => b.email);
+        adminAllMembers = adminAllMembers.map(m => ({
+          ...m,
+          isBlocked: blockedEmails.includes(m.email)
+        }));
+      } else {
+        // Fallback to localStorage if Supabase fails
+        const blockedData = localStorage.getItem('sxa_blocked_members') || '[]';
+        const blockedMembers = JSON.parse(blockedData);
+        adminAllMembers = adminAllMembers.map(m => ({
+          ...m,
+          isBlocked: blockedMembers.includes(m.email)
+        }));
+      }
+    } catch(e) {
+      console.warn('Supabase blocked members fetch failed, using localStorage fallback:', e);
+      const blockedData = localStorage.getItem('sxa_blocked_members') || '[]';
+      const blockedMembers = JSON.parse(blockedData);
+      adminAllMembers = adminAllMembers.map(m => ({
+        ...m,
+        isBlocked: blockedMembers.includes(m.email)
+      }));
+    }
+
+    adminDisplayMembersList(adminAllMembers);
+    
+  } catch(err) {
+    console.error('Error loading members:', err);
+    container.innerHTML = '<div style="text-align:center;color:rgba(204,0,0,0.7);padding:40px 0;font-size:14px;">Error loading members</div>';
+  }
+}
+
+function adminFilterMembers() {
+  const query = document.getElementById('members-search').value.toLowerCase();
+  const filtered = adminAllMembers.filter(m => 
+    m.name.toLowerCase().includes(query) || 
+    m.email.toLowerCase().includes(query)
+  );
+  adminDisplayMembersList(filtered);
+}
+
+function adminDisplayMembersList(members) {
+  const container = document.getElementById('members-list-container');
+  
+  if (members.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">No members found</div>';
+    return;
+  }
+
+  container.innerHTML = members.map(m => `
+    <div class="admin-members-card" style="overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+          <div style="width:44px;height:44px;border-radius:10px;background:${m.avatar || '#cc0000'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;font-weight:bold;">
+            ${m.name.charAt(0).toUpperCase()}
+          </div>
+          <div style="min-width:0;flex:1;">
+            <div style="font-family:'Barlow',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${m.name}
+            </div>
+            <div style="font-family:'Barlow',sans-serif;font-size:12px;color:rgba(255,255,255,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
+              ${m.email}
+            </div>
+          </div>
+        </div>
+        <button class="admin-btn ${m.isBlocked ? 'admin-btn-green' : 'admin-btn-red'}" 
+          style="width:auto;padding:8px 12px;font-size:12px;margin:0;"
+          onclick="adminToggleMemberBlock('${m.email}', '${m.name}', ${m.isBlocked})">
+          ${m.isBlocked ? '✓ UNBLOCK' : '⊘ BLOCK'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function adminToggleMemberBlock(email, name, currentlyBlocked) {
+  try {
+    if (currentlyBlocked) {
+      // Unblock via Supabase
+      const deleteRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/blocked_members?email=eq.${encodeURIComponent(email)}`,
+        {
+          method: 'DELETE',
+          headers: SUPABASE_HEADERS
+        }
+      );
+      
+      if (deleteRes.ok) {
+        toast(`✓ ${name} has been unblocked`, 'success');
+      } else {
+        throw new Error('Failed to unblock from Supabase');
+      }
+    } else {
+      // Block via Supabase
+      const insertRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/blocked_members`,
+        {
+          method: 'POST',
+          headers: SUPABASE_HEADERS,
+          body: JSON.stringify({
+            email: email,
+            member_name: name,
+            blocked_by: ADMIN_CREDS.user || 'admin',
+            reason: 'Blocked via admin panel'
+          })
+        }
+      );
+      
+      if (insertRes.ok) {
+        toast(`⊘ ${name} has been blocked`, 'warning');
+      } else {
+        throw new Error('Failed to block in Supabase');
+      }
+    }
+
+    // Also update localStorage as backup
+    let blockedMembers = [];
+    try {
+      blockedMembers = JSON.parse(localStorage.getItem('sxa_blocked_members') || '[]');
+    } catch(e) {
+      blockedMembers = [];
+    }
+
+    if (currentlyBlocked) {
+      blockedMembers = blockedMembers.filter(e => e !== email);
+    } else {
+      if (!blockedMembers.includes(email)) {
+        blockedMembers.push(email);
+      }
+    }
+    localStorage.setItem('sxa_blocked_members', JSON.stringify(blockedMembers));
+    
+    // Refresh the display
+    adminRenderMembers();
+    
+  } catch(err) {
+    console.error('Error toggling member block:', err);
+    toast('Error updating member status', 'error');
+  }
 }
 
 function openAdminLogin() {
@@ -4002,6 +4213,75 @@ function adminSelectPayOpt(el, value) {
   el.style.background = value === 'paid' ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)';
   el.style.borderColor = value === 'paid' ? 'rgba(34,197,94,0.5)' : 'rgba(245,158,11,0.5)';
   el.querySelector('div:last-child').style.color = value === 'paid' ? '#22c55e' : '#f59e0b';
+}
+
+async function adminLoadBookings() {
+  const container = document.getElementById('admin-existing-bookings');
+  
+  try {
+    // Fetch all bookings from Supabase
+    const url = `${SUPABASE_URL}/rest/v1/Bookings?order=date.desc,time.asc&limit=50`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: SUPABASE_HEADERS
+    });
+    
+    if (!res.ok) {
+      container.innerHTML = '<div style="text-align:center;color:rgba(204,0,0,0.6);padding:20px 16px;font-size:13px;">Error loading bookings</div>';
+      return;
+    }
+    
+    const bookings = await res.json();
+    
+    if (!bookings || bookings.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 16px;font-size:13px;">No bookings yet</div>';
+      return;
+    }
+    
+    // Group by date
+    const grouped = {};
+    bookings.forEach(b => {
+      const dateKey = new Date(b.date).toLocaleDateString('en-GB');
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(b);
+    });
+    
+    // Render grouped bookings
+    let html = '';
+    Object.entries(grouped).forEach(([dateKey, items]) => {
+      html += `<div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.08;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.5px;margin-bottom:8px;">📅 ${dateKey}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">`;
+      
+      items.forEach(b => {
+        const court = b.court || 'Unknown';
+        const time = b.time || 'N/A';
+        const name = b.member_name || 'Walk-in';
+        const status = b.status || 'pending';
+        const statusColor = status === 'confirmed' ? '#22c55e' : status === 'cancelled' ? '#ef4444' : '#f59e0b';
+        
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:12px;">
+            <div style="flex:1;">
+              <div style="color:#fff;font-weight:600;">${time}</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:11px;">${court} · ${name}</div>
+            </div>
+            <div style="background:${statusColor}20;color:${statusColor};padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;">
+              ${status}
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div></div>';
+    });
+    
+    container.innerHTML = html;
+    
+  } catch(err) {
+    console.error('Error loading bookings:', err);
+    container.innerHTML = '<div style="text-align:center;color:rgba(204,0,0,0.6);padding:20px 16px;font-size:13px;">Error loading bookings</div>';
+  }
 }
 
 async function adminConfirmBookForMember() {
