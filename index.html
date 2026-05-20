@@ -2244,10 +2244,10 @@ const MEN = [
   { time:'7:15 – 8:15 AM', price:60000, duration:'1 Hour', session:'morning', label:'Open to All' },
 ];
 const LADIES = [
-  { time:'8:15 – 9:15 AM',      price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
-  { time:'9:15 – 10:15 AM',     price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
-  { time:'10:15 – 11:15 AM',    price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
-  { time:'11:15 AM – 12:15 PM', price:60000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+  { time:'8:15 – 9:15 AM',      price:40000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+  { time:'9:15 – 10:15 AM',     price:40000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+  { time:'10:15 – 11:15 AM',    price:40000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
+  { time:'11:15 AM – 12:15 PM', price:40000, duration:'1 Hour', session:'ladies', label:'Ladies Only' },
 ];
 const MIXED_DAY = [
   { time:'1:00 – 2:00 PM', price:60000, duration:'1 Hour', session:'gents', label:'Open to All' },
@@ -2458,6 +2458,12 @@ function isHardBlocked(court, dateVal, slotTime) {
   // Helper: is date in [YYYY-MM-DD, YYYY-MM-DD] inclusive?
   function inRange(from, to) { return dateVal >= from && dateVal <= to; }
 
+  // ── MORNING CLOSED ──────────────────────────────────────────────────────────
+  // 6:15–8:15 AM permanently closed on all courts
+  if (slotTime === '6:15 – 7:15 AM' || slotTime === '7:15 – 8:15 AM') {
+    return true;
+  }
+
   // ── RULE 1 ──────────────────────────────────────────────────────────────
   // May, June, July | Mon(1) Wed(3) Thu(4) | 5:30–7:00 PM | Court 1
   if (court === 'Padel Court 1'
@@ -2568,6 +2574,12 @@ function isHardBlocked(court, dateVal, slotTime) {
   return false;
 }
 
+// ============ CLOSED SLOTS (show as "Closed" not "Booked") ============
+function isClosedSlot(slotTime) {
+  // 6:15–8:15 AM morning sessions are permanently closed
+  return slotTime === '6:15 – 7:15 AM' || slotTime === '7:15 – 8:15 AM';
+}
+
 async function renderSlots() {
   const container = document.getElementById('slots-container');
   const dateVal   = document.getElementById('booking-date').value;
@@ -2632,7 +2644,7 @@ async function renderSlots() {
         <div class="slot-time">${slot.time}</div>
         <div class="slot-price">MWK ${slot.price.toLocaleString()}</div>
         <div class="slot-label">${slot.label}</div>
-        <div class="slot-status">${isBooked ? (isMine ? 'Your Booking' : 'Booked') : 'Available'}</div>`;
+        <div class="slot-status">${isBooked ? (isMine ? 'Your Booking' : (isClosedSlot(slot.time) ? 'Closed' : 'Booked')) : 'Available'}</div>`;
       if (!isBooked) card.onclick = () => {
         card.classList.add('tapping');
         setTimeout(() => selectSlot(slot, dateVal), 200);
