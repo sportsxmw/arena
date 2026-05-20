@@ -1491,11 +1491,11 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
 
 <!-- LANDING -->
 <div class="screen active" id="screen-landing">
+  <button onclick="openAdminLogin()" style="position:absolute;top:16px;right:16px;z-index:100;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;">ADMIN</button>
   <video id="landing-video" src="https://res.cloudinary.com/dfbherdd5/video/upload/q_auto:best,h_720,c_scale/v1778872225/WhatsApp_Video_2026-05-15_at_8.33.03_PM_h5hl6h.mp4"
     autoplay loop muted playsinline preload="auto"></video>
-  <button class="unmute-btn" id="unmute-btn" onclick="toggleMute()">
-    <span id="unmute-icon">🔇</span> <span id="unmute-label">Tap for Sound</span>
-  </button>
+  <button onclick="openAdminLogin()" style="position:absolute;top:14px;right:14px;z-index:100;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;padding:6px 10px;cursor:pointer;letter-spacing:0.5px;">⚙ Admin</button>
+
   <div class="landing-content">
     <div class="brand-badge" onclick="adminSecretTap()" style="cursor:pointer;position:relative;z-index:10;"><span>SX</span></div>
     <div class="landing-tagline">Padel Courts · Blantyre</div>
@@ -1941,6 +1941,16 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
         <div class="acct-row" onclick="toast('Notifications coming soon!')"><div class="ri">🔔</div><span class="rl">Notifications</span><span class="ra">›</span></div>
       </div>
     </div>
+    <div class="acct-section">
+      <div class="acct-sec-title">Staff</div>
+      <div class="acct-card">
+        <div class="acct-row" onclick="openAdminLogin()" style="background:linear-gradient(135deg,rgba(204,0,0,0.07),rgba(204,0,0,0.03));border-left:3px solid var(--red);">
+          <div class="ri">🔐</div>
+          <span class="rl" style="font-weight:700;color:var(--red);">Admin Panel</span>
+          <span class="ra" style="color:var(--red);">›</span>
+        </div>
+      </div>
+    </div>
     <button class="btn-signout" onclick="signOut()">Sign Out</button>
   </div>
 </div>
@@ -2101,32 +2111,63 @@ async function supaInsert(booking) {
 }
 
 async function supaFetch(court, date) {
-  const dateOnly = date.split('T')[0];
-  const dateFrom = dateOnly + 'T00:00:00';
-  const dateTo   = dateOnly + 'T23:59:59';
-  const url = SUPABASE_URL + '/rest/v1/Bookings'
-    + '?court=eq.'  + encodeURIComponent(court)
-    + '&date=gte.'  + encodeURIComponent(dateFrom)
-    + '&date=lte.'  + encodeURIComponent(dateTo)
-    + '&select=court,date,time,price,duration,user_email'
-    + '&t=' + Date.now(); // Cache buster
-  const res = await fetch(url, {
-    headers: {
-      ...SUPABASE_HEADERS,
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache'
+  try {
+    const dateOnly = date.split('T')[0];
+    
+    // Always check localStorage first
+    const cached = DB.bookings().filter(b => b.court === court && b.date.startsWith(dateOnly));
+    
+    // Try Supabase as secondary source
+    try {
+      const allUrl = SUPABASE_URL + '/rest/v1/Bookings?select=*&limit=1000';
+      console.log('Syncing with Supabase...');
+      
+      const allRes = await fetch(allUrl, {
+        headers: SUPABASE_HEADERS,
+        method: 'GET'
+      });
+      
+      if (allRes.ok) {
+        const allBookings = await allRes.json();
+        console.log('Supabase sync success:', allBookings.length, 'bookings');
+        
+        // Merge with cache
+        const filtered = allBookings.filter(b => {
+          const bookingDate = (b.date || '').split('T')[0];
+          return b.court === court && bookingDate === dateOnly;
+        });
+        
+        // Update local cache with Supabase data
+        const others = DB.bookings().filter(b => !(b.court === court && b.date.startsWith(dateOnly)));
+        const merged = [...others, ...allBookings.map(b => ({
+          court: b.court,
+          date: (b.date || '').split('T')[0],
+          time: b.time,
+          price: b.price,
+          duration: b.duration,
+          userEmail: b.user_email
+        }))];
+        DB.saveBookings(merged);
+        
+        return filtered.map(r => ({
+          court: r.court,
+          date: (r.date || '').split('T')[0],
+          time: r.time,
+          price: r.price,
+          duration: r.duration,
+          userEmail: r.user_email
+        }));
+      }
+    } catch(supaErr) {
+      console.warn('Supabase unavailable, using local cache');
     }
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const rows = await res.json();
-  return rows.map(r => ({
-    court:     r.court,
-    date:      (r.date || '').split('T')[0],
-    time:      r.time,
-    price:     r.price,
-    duration:  r.duration,
-    userEmail: r.user_email
-  }));
+    
+    // Return cached bookings
+    return cached;
+  } catch(e) {
+    console.error('supaFetch error:', e.message);
+    return DB.bookings().filter(b => b.court === court && b.date.split('T')[0] === date.split('T')[0]);
+  }
 }
 
 async function supaDelete(court, date, time) {
@@ -3266,8 +3307,6 @@ window.addEventListener('beforeinstallprompt', function(e) {
   document.body.appendChild(banner);
 })();
 </script>
-</body>
-</html>
 
 <!-- ADMIN SCREEN -->
 <div class="screen" id="screen-admin">
@@ -3464,9 +3503,11 @@ window.addEventListener('beforeinstallprompt', function(e) {
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <input id="admin-user-input" type="text" placeholder="Username" autocomplete="off"
+        onkeydown="if(event.key==='Enter')document.getElementById('admin-pass-input').focus()"
         style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:13px 16px;color:#fff;font-size:15px;outline:none;font-family:'Barlow',sans-serif;width:100%;">
       <div style="position:relative;">
         <input id="admin-pass-input" type="password" placeholder="Password" autocomplete="off"
+          onkeydown="if(event.key==='Enter')doAdminLogin()"
           style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:13px 16px;color:#fff;font-size:15px;outline:none;font-family:'Barlow',sans-serif;width:100%;padding-right:44px;">
         <button type="button" onclick="toggleAdminPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:18px;padding:4px;">👁</button>
       </div>
@@ -3743,223 +3784,202 @@ let adminAllMembers = [];
 
 async function adminRenderMembers() {
   const container = document.getElementById('members-list-container');
-  container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">Loading members...</div>';
-  
+  container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">⏳ Loading members...</div>';
+
   try {
+    // 1. Fetch all users from Supabase
     let allUsers = [];
-
-    // Try to fetch users from Supabase first
-    try {
-      const usersRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/users?select=email,name,phone,avatar,gender`,
-        {
-          method: 'GET',
-          headers: SUPABASE_HEADERS
-        }
-      );
-      
-      if (usersRes.ok) {
-        const supaUsers = await usersRes.json();
-        allUsers = supaUsers.filter(u => u && u.email);
-      }
-    } catch(e) {
-      console.warn('Supabase users fetch failed, using localStorage:', e.message);
+    const usersRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?select=email,name,phone,gender&order=name.asc`,
+      { method: 'GET', headers: SUPABASE_HEADERS }
+    );
+    if (usersRes.ok) {
+      const data = await usersRes.json();
+      allUsers = (data || []).filter(u => u && u.email);
     }
 
-    // Fallback to localStorage if Supabase is empty
+    // Fallback to localStorage if Supabase returned nothing
     if (allUsers.length === 0) {
-      const users = DB.users();
-      allUsers = Object.entries(users).map(([email, data]) => ({
-        email,
-        ...data
-      })).filter(u => u && u.email);
+      const local = DB.users();
+      allUsers = Object.entries(local).map(([email, d]) => ({ email, name: d.name || email, phone: d.phone || '', gender: d.gender || '' }));
     }
 
-    // Merge with localStorage as backup
-    const localUsers = DB.users();
-    allUsers = allUsers.map(u => ({
-      ...u,
-      ...(localUsers[u.email] || {})
-    }));
-
-    adminAllMembers = allUsers;
-    
-    if (adminAllMembers.length === 0) {
+    if (allUsers.length === 0) {
       container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">No members registered yet</div>';
       return;
     }
 
-    // Fetch blocked status from Supabase
+    // 2. Fetch all bookings to compute per-member count
+    let allBookings = [];
     try {
-      const blockedRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/blocked_members?select=email`,
-        {
-          method: 'GET',
-          headers: SUPABASE_HEADERS
-        }
-      );
-      
-      if (blockedRes.ok) {
-        const blockedList = await blockedRes.json();
-        const blockedEmails = blockedList.map(b => b.email);
-        adminAllMembers = adminAllMembers.map(m => ({
-          ...m,
-          isBlocked: blockedEmails.includes(m.email)
-        }));
-      } else {
-        // Fallback to localStorage if Supabase fails
-        const blockedData = localStorage.getItem('sxa_blocked_members') || '[]';
-        const blockedMembers = JSON.parse(blockedData);
-        adminAllMembers = adminAllMembers.map(m => ({
-          ...m,
-          isBlocked: blockedMembers.includes(m.email)
-        }));
-      }
-    } catch(e) {
-      console.warn('Supabase blocked members fetch failed, using localStorage fallback:', e.message);
-      const blockedData = localStorage.getItem('sxa_blocked_members') || '[]';
-      const blockedMembers = JSON.parse(blockedData);
-      adminAllMembers = adminAllMembers.map(m => ({
-        ...m,
-        isBlocked: blockedMembers.includes(m.email)
-      }));
-    }
+      const bRes = await fetch(`${SUPABASE_URL}/rest/v1/Bookings?select=user_email`, { headers: SUPABASE_HEADERS });
+      if (bRes.ok) allBookings = await bRes.json();
+    } catch(e) { /* ignore */ }
+    const bookingCount = {};
+    (allBookings || []).forEach(b => {
+      if (b.user_email) bookingCount[b.user_email] = (bookingCount[b.user_email] || 0) + 1;
+    });
 
-    // Sort by name
+    // 3. Fetch blocked emails from Supabase blocked_members table
+    let blockedEmails = new Set();
+    try {
+      const bkRes = await fetch(`${SUPABASE_URL}/rest/v1/blocked_members?select=email`, { headers: SUPABASE_HEADERS });
+      if (bkRes.ok) {
+        const bkData = await bkRes.json();
+        (bkData || []).forEach(r => blockedEmails.add(r.email));
+      }
+    } catch(e) { /* ignore */ }
+    // Also merge localStorage fallback
+    try {
+      const local = JSON.parse(localStorage.getItem('sxa_blocked_members') || '[]');
+      local.forEach(e => blockedEmails.add(e));
+    } catch(e) { /* ignore */ }
+
+    // 4. Build final member list
+    adminAllMembers = allUsers.map(u => ({
+      ...u,
+      bookings: bookingCount[u.email] || 0,
+      isBlocked: blockedEmails.has(u.email)
+    }));
     adminAllMembers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
     adminDisplayMembersList(adminAllMembers);
-    
+
   } catch(err) {
-    console.error('Error loading members:', err);
-    container.innerHTML = '<div style="text-align:center;color:rgba(204,0,0,0.7);padding:40px 0;font-size:14px;">Error loading members</div>';
+    console.error('adminRenderMembers error:', err);
+    container.innerHTML = '<div style="text-align:center;color:rgba(204,0,0,0.7);padding:40px 0;font-size:14px;">❌ Error loading members. Check your connection.</div>';
   }
 }
 
 function adminFilterMembers() {
-  const query = document.getElementById('members-search').value.toLowerCase();
-  const filtered = adminAllMembers.filter(m => 
-    m.name.toLowerCase().includes(query) || 
-    m.email.toLowerCase().includes(query)
-  );
+  const q = (document.getElementById('members-search').value || '').toLowerCase();
+  const filtered = q
+    ? adminAllMembers.filter(m => (m.name||'').toLowerCase().includes(q) || (m.email||'').toLowerCase().includes(q) || (m.phone||'').toLowerCase().includes(q))
+    : adminAllMembers;
   adminDisplayMembersList(filtered);
 }
 
 function adminDisplayMembersList(members) {
   const container = document.getElementById('members-list-container');
-  
-  if (members.length === 0) {
+
+  // Summary bar
+  const total   = members.length;
+  const blocked = members.filter(m => m.isBlocked).length;
+  const active  = total - blocked;
+
+  if (total === 0) {
     container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">No members found</div>';
     return;
   }
 
-  container.innerHTML = members.map((m, idx) => {
+  const summary = `
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#22c55e;">${active}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Active</div>
+      </div>
+      <div style="flex:1;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#ef4444;">${blocked}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Blocked</div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#fff;">${total}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Total</div>
+      </div>
+    </div>`;
+
+  const cards = members.map(m => {
     const isBlocked = m.isBlocked || false;
-    const escapedEmail = (m.email || '').replace(/'/g, "\\'");
-    const escapedName = (m.name || '').replace(/'/g, "\\'");
+    const initial   = (m.name || '?').charAt(0).toUpperCase();
+    const safeEmail = (m.email || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const safeName  = (m.name  || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const genderIcon = m.gender === 'female' ? '👩' : m.gender === 'male' ? '👨' : '👤';
+    const accentColor = isBlocked ? '#ef4444' : '#22c55e';
+    const avatarBg    = isBlocked ? 'linear-gradient(135deg,#7f1d1d,#991b1b)' : 'linear-gradient(135deg,#cc0000,#8a0000)';
+
     return `
-    <div class="admin-members-card" style="overflow:hidden;border-left:3px solid ${isBlocked ? '#ef4444' : '#22c55e'};">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;gap:12px;">
-        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-          <div style="width:44px;height:44px;border-radius:10px;background:${isBlocked ? 'linear-gradient(135deg,#7f1d1d,#991b1b)' : '#cc0000'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;font-weight:bold;opacity:${isBlocked ? '0.6' : '1'};">
-            ${m.name.charAt(0).toUpperCase()}
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-left:3px solid ${accentColor};border-radius:14px;overflow:hidden;transition:transform 0.15s;">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;">
+
+        <!-- Avatar -->
+        <div style="width:46px;height:46px;border-radius:12px;background:${avatarBg};display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;flex-shrink:0;opacity:${isBlocked ? '0.55' : '1'};">
+          ${initial}
+        </div>
+
+        <!-- Info -->
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:700;color:${isBlocked ? 'rgba(255,255,255,0.45)' : '#fff'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">${m.name || '—'}</span>
+            <span style="font-size:12px;">${genderIcon}</span>
+            ${isBlocked ? '<span style="background:#ef444420;color:#ef4444;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;">BLOCKED</span>' : ''}
           </div>
-          <div style="min-width:0;flex:1;">
-            <div style="font-family:'Barlow',sans-serif;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:${isBlocked ? '0.6' : '1'};">
-              ${m.name}
-            </div>
-            <div style="font-family:'Barlow',sans-serif;font-size:12px;color:rgba(255,255,255,${isBlocked ? '0.3' : '0.5'});white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">
-              ${m.email}
-            </div>
-            ${isBlocked ? '<div style="font-size:10px;color:#ef4444;margin-top:4px;font-weight:600;">🚫 BLOCKED</div>' : ''}
+          <div style="font-size:11px;color:rgba(255,255,255,0.38);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.email || '—'}</div>
+          <div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap;">
+            ${m.phone ? `<span style="font-size:10px;color:rgba(255,255,255,0.3);">📞 ${m.phone}</span>` : ''}
+            <span style="font-size:10px;color:rgba(255,255,255,0.3);">📅 ${m.bookings} booking${m.bookings !== 1 ? 's' : ''}</span>
           </div>
         </div>
-        <button class="admin-btn ${isBlocked ? 'admin-btn-green' : 'admin-btn-red'}" 
-          style="width:auto;padding:8px 12px;font-size:12px;margin:0;white-space:nowrap;"
-          onclick="adminToggleMemberBlock('${escapedEmail}', '${escapedName}', ${isBlocked})">
+
+        <!-- Block/Unblock button -->
+        <button
+          onclick="adminToggleMemberBlock('${safeEmail}', '${safeName}', ${isBlocked})"
+          style="flex-shrink:0;border:none;border-radius:10px;padding:9px 14px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;transition:opacity 0.2s,transform 0.1s;
+            background:${isBlocked ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#e60000,#a80000)'};
+            color:#fff;
+            box-shadow:${isBlocked ? '0 3px 10px rgba(34,197,94,0.3)' : '0 3px 10px rgba(204,0,0,0.35)'};"
+          onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
           ${isBlocked ? '✓ Unblock' : '⊘ Block'}
         </button>
+
       </div>
-    </div>
-  `;
+    </div>`;
   }).join('');
+
+  container.innerHTML = summary + cards;
 }
 
 async function adminToggleMemberBlock(email, name, currentlyBlocked) {
+  const action = currentlyBlocked ? 'Unblocking' : 'Blocking';
+  toast(`${action} ${name}…`);
+
   try {
-    const actionLabel = currentlyBlocked ? 'unblock' : 'block';
-    toast(`${currentlyBlocked ? 'Unblocking' : 'Blocking'} ${name}...`);
-
     if (currentlyBlocked) {
-      // Unblock via Supabase
-      try {
-        const deleteRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/blocked_members?email=eq.${encodeURIComponent(email)}`,
-          {
-            method: 'DELETE',
-            headers: SUPABASE_HEADERS
-          }
-        );
-        
-        if (!deleteRes.ok && deleteRes.status !== 404) {
-          throw new Error('Failed to unblock from Supabase');
-        }
-      } catch(e) {
-        console.warn('Supabase unblock failed, using localStorage:', e.message);
-      }
+      // Remove from blocked_members table
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/blocked_members?email=eq.${encodeURIComponent(email)}`,
+        { method: 'DELETE', headers: SUPABASE_HEADERS }
+      );
     } else {
-      // Block via Supabase
-      try {
-        const insertRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/blocked_members`,
-          {
-            method: 'POST',
-            headers: SUPABASE_HEADERS,
-            body: JSON.stringify({
-              email: email,
-              member_name: name,
-              blocked_by: ADMIN_CREDS.user || 'admin',
-              reason: 'Blocked via admin panel'
-            })
-          }
-        );
-        
-        if (!insertRes.ok) {
-          throw new Error('Failed to block in Supabase');
+      // Insert into blocked_members table (upsert-style: ignore conflict)
+      const insertHeaders = { ...SUPABASE_HEADERS, 'Prefer': 'resolution=ignore-duplicates,return=minimal' };
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/blocked_members`,
+        {
+          method: 'POST',
+          headers: insertHeaders,
+          body: JSON.stringify({ email, name })
         }
-      } catch(e) {
-        console.warn('Supabase block failed, using localStorage:', e.message);
-      }
+      );
     }
 
-    // Update localStorage as primary source
-    let blockedMembers = [];
-    try {
-      blockedMembers = JSON.parse(localStorage.getItem('sxa_blocked_members') || '[]');
-    } catch(e) {
-      blockedMembers = [];
-    }
-
+    // Mirror in localStorage as fallback cache
+    let local = [];
+    try { local = JSON.parse(localStorage.getItem('sxa_blocked_members') || '[]'); } catch(e) {}
     if (currentlyBlocked) {
-      blockedMembers = blockedMembers.filter(e => e !== email);
-      toast(`✓ ${name} has been unblocked`, false);
+      local = local.filter(e => e !== email);
     } else {
-      if (!blockedMembers.includes(email)) {
-        blockedMembers.push(email);
-      }
-      toast(`🚫 ${name} has been blocked`, false);
+      if (!local.includes(email)) local.push(email);
     }
-    localStorage.setItem('sxa_blocked_members', JSON.stringify(blockedMembers));
-    
-    // Refresh the display
+    localStorage.setItem('sxa_blocked_members', JSON.stringify(local));
+
+    toast(currentlyBlocked ? `✓ ${name} unblocked` : `🚫 ${name} blocked`);
+
+    // Refresh list
     await adminRenderMembers();
-    
+
   } catch(err) {
-    console.error('Error toggling member block:', err);
+    console.error('adminToggleMemberBlock error:', err);
     toast('Error: ' + err.message, true);
-  }
-}
-    console.error('Error toggling member block:', err);
-    toast('Error updating member status', 'error');
   }
 }
 
@@ -3978,31 +3998,33 @@ function toggleAdminPw() {
 
 function doAdminLogin() {
   const u = document.getElementById('admin-user-input').value.trim();
-  const p = document.getElementById('admin-pass-input').value;
+  const p = document.getElementById('admin-pass-input').value.trim();
   const err = document.getElementById('admin-login-err');
-  if (u !== ADMIN_CREDS.user || p !== ADMIN_CREDS.pass) {
+
+  if (u !== 'nikk' || p !== 'Apple@900') {
     err.textContent = 'Invalid credentials. Try again.';
     err.style.display = 'block';
     document.getElementById('admin-pass-input').value = '';
     return;
   }
+
+  err.style.display = 'none';
   document.getElementById('admin-login-overlay').style.display = 'none';
-  // Set today's date as default
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  document.getElementById('admin-date').value = todayStr;
-  document.getElementById('block-date').value = todayStr;
-  // Show admin screen
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('admin-date').value = today;
+  document.getElementById('block-date').value = today;
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-admin').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
   document.getElementById('app-footer').style.display = 'none';
-  // Load blocks from Supabase then render
-  Promise.all([loadAdminBlocks(), loadAdminBlockedUsers()]).then(() => {
+
+  setTimeout(() => {
     adminSwitchTab('slots');
     adminRender();
     adminRenderManualBlocks();
-  });
+  }, 100);
 }
 
 function adminLogout() {
@@ -4386,9 +4408,14 @@ async function adminConfirmBookForMember() {
 let _adminTapCount = 0, _adminTapTimer = null;
 function adminSecretTap() {
   _adminTapCount++;
+  console.log('Admin tap count:', _adminTapCount);
   clearTimeout(_adminTapTimer);
-  _adminTapTimer = setTimeout(() => { _adminTapCount = 0; }, 2000);
-  if (_adminTapCount >= 5) { _adminTapCount = 0; openAdminLogin(); }
+  _adminTapTimer = setTimeout(() => { _adminTapCount = 0; }, 1500);
+  if (_adminTapCount >= 2) { 
+    _adminTapCount = 0; 
+    console.log('Opening admin login...');
+    openAdminLogin(); 
+  }
 }
 
 // Secret keyboard shortcut: type "sxadmin" anywhere on the page
@@ -4411,3 +4438,5 @@ document.addEventListener('DOMContentLoaded', function() {
   badge.addEventListener('touchmove', function() { clearTimeout(_adminLongPressTimer); });
 });
 </script>
+</body>
+</html>
