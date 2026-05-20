@@ -2507,6 +2507,18 @@ function isHardBlocked(court, dateVal, slotTime) {
     if (dow === 4 && slotTime === '7:00 – 8:30 PM')  return true;
   }
 
+  // ── RULE 5b ─────────────────────────────────────────────────────────────
+  // 2026-05-20 till Dec 31 | Court 2
+  // Monday 8:30–10:00 PM
+  // Wednesday 8:30–10:00 PM
+  // Thursday 7:00–8:30 PM
+  if (court === 'Padel Court 2'
+      && inRange('2026-05-20', '2026-12-31')) {
+    if (dow === 1 && slotTime === '8:30 – 10:00 PM') return true;
+    if (dow === 3 && slotTime === '8:30 – 10:00 PM') return true;
+    if (dow === 4 && slotTime === '7:00 – 8:30 PM')  return true;
+  }
+
   // ── RULE 6 ──────────────────────────────────────────────────────────────
   // June | All Mondays | 5:30–7:00 PM | Court 2
   if (court === 'Padel Court 2'
