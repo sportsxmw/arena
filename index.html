@@ -2574,6 +2574,23 @@ function isHardBlocked(court, dateVal, slotTime) {
   return false;
 }
 
+// ============ "BOOKED ALREADY" SPECIFIC DATE BLOCKS ============
+// These are one-off date+court+time blocks that display as "Booked Already"
+function isBookedAlready(court, dateVal, slotTime) {
+  const BOOKED_ALREADY = [
+    // Wednesday 2026-05-20 — Both courts — 8:30–10:00 PM
+    { date: '2026-05-20', court: 'Padel Court 1', time: '8:30 – 10:00 PM' },
+    { date: '2026-05-20', court: 'Padel Court 2', time: '8:30 – 10:00 PM' },
+    // Thursday 2026-05-21 — Both courts — 8:30–10:00 PM
+    { date: '2026-05-21', court: 'Padel Court 1', time: '8:30 – 10:00 PM' },
+    { date: '2026-05-21', court: 'Padel Court 2', time: '8:30 – 10:00 PM' },
+    // Thursday 2026-05-21 — Both courts — 7:00–8:30 PM
+    { date: '2026-05-21', court: 'Padel Court 1', time: '7:00 – 8:30 PM' },
+    { date: '2026-05-21', court: 'Padel Court 2', time: '7:00 – 8:30 PM' },
+  ];
+  return BOOKED_ALREADY.some(b => b.date === dateVal && b.court === court && b.time === slotTime);
+}
+
 // ============ CLOSED SLOTS (show as "Closed" not "Booked") ============
 function isClosedSlot(slotTime) {
   // 6:15–8:15 AM morning sessions are permanently closed
@@ -2633,18 +2650,25 @@ async function renderSlots() {
     lbl.innerHTML = `${emoji} ${label}`;
     const grid = document.createElement('div'); grid.className = 'slots-grid';
     slots.forEach(slot => {
-      const existing     = liveBookings.find(b => b.time===slot.time);
-      const isHardBlock  = isHardBlocked(selectedCourt, dateVal, slot.time);
+      const existing      = liveBookings.find(b => b.time===slot.time);
+      const isHardBlock   = isHardBlocked(selectedCourt, dateVal, slot.time);
       const isManualBlock = isAdminManualBlocked(selectedCourt, dateVal, slot.time);
-      const isBooked     = !!existing || isHardBlock || isManualBlock;
-      const isMine       = !isHardBlock && !isManualBlock && !!existing && CU && existing.userEmail === CU.email;
+      const isAlreadyBook = isBookedAlready(selectedCourt, dateVal, slot.time);
+      const isBooked      = !!existing || isHardBlock || isManualBlock || isAlreadyBook;
+      const isMine        = !isHardBlock && !isManualBlock && !isAlreadyBook && !!existing && CU && existing.userEmail === CU.email;
+      let statusLabel;
+      if (isMine)               statusLabel = 'Your Booking';
+      else if (isAlreadyBook)   statusLabel = 'Booked Already';
+      else if (isClosedSlot(slot.time)) statusLabel = 'Closed';
+      else if (isBooked)        statusLabel = 'Booked';
+      else                      statusLabel = 'Available';
       const card       = document.createElement('button');
       card.className   = `slot-card ${session}${isBooked ? ' booked' : ''}${isMine ? ' mine-booked' : ''}`;
       card.innerHTML   = `
         <div class="slot-time">${slot.time}</div>
         <div class="slot-price">MWK ${slot.price.toLocaleString()}</div>
         <div class="slot-label">${slot.label}</div>
-        <div class="slot-status">${isBooked ? (isMine ? 'Your Booking' : (isClosedSlot(slot.time) ? 'Closed' : 'Booked')) : 'Available'}</div>`;
+        <div class="slot-status">${statusLabel}</div>`;
       if (!isBooked) card.onclick = () => {
         card.classList.add('tapping');
         setTimeout(() => selectSlot(slot, dateVal), 200);
@@ -2668,6 +2692,7 @@ async function renderSlots() {
 function selectSlot(slot, dateVal) {
   if (!CU) { if(confirm('Sign in to book a slot. Go to Sign In?')) showScreen('login'); return; }
   if (isHardBlocked(selectedCourt, dateVal, slot.time)) { toast('This slot is unavailable.', true); return; }
+  if (isBookedAlready(selectedCourt, dateVal, slot.time)) { toast('This slot is already booked.', true); return; }
 
   // Prevent same user booking same slot/court/date twice
   const dup = DB.bookings().find(b => b.court===selectedCourt && b.date.startsWith(dateVal) && b.time===slot.time && b.userEmail===CU.email);
