@@ -2233,7 +2233,7 @@ const DB = {
 let CU = null;  // current user: { email, name, phone, avatar }
 let selectedCourt = 'Padel Court 1';
 let selectedSlot  = null;
-let adminManualBlocks = []; // BLOCKING DISABLED - all arrays empty
+let adminManualBlocks = []; // date_blocks loaded from Supabase on admin login and on renderSlots
 
 // isAdminManualBlocked declared at top level
 let pendingDate   = null;
@@ -2660,6 +2660,7 @@ async function renderSlots() {
       if (isMine)               statusLabel = 'Your Booking';
       else if (isAlreadyBook)   statusLabel = 'Booked Already';
       else if (isClosedSlot(slot.time)) statusLabel = 'Closed';
+      else if (isManualBlock)   statusLabel = 'Closed';
       else if (isBooked)        statusLabel = 'Booked';
       else                      statusLabel = 'Available';
       const card       = document.createElement('button');
@@ -3387,9 +3388,17 @@ showScreen = function(id, nav) {
   });
 })();
 
-// Make isAdminManualBlocked available in this script scope
+// isAdminManualBlocked: returns true if the date (or date+court) is blocked,
+// OR if the specific date+court+time slot is blocked.
 function isAdminManualBlocked(court, dateVal, time) {
-  return false; // BLOCKING DISABLED
+  return adminManualBlocks.some(b => {
+    if (b.date !== dateVal) return false;
+    if (b.court !== null && b.court !== court) return false;
+    // If block has no time (null/undefined), it blocks all slots on that date/court
+    if (!b.time) return true;
+    // If block has a specific time, only block that slot
+    return b.time === time;
+  });
 }
 
 </script>
@@ -3523,7 +3532,114 @@ window.addEventListener('beforeinstallprompt', function(e) {
       <div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px 0;font-size:14px;">Pick a date to view slots</div>
     </div>
 
-    <!-- Manual block form - DISABLED -->
+    <!-- DATE HARD BLOCK CARD -->
+    <div class="admin-card" style="margin:0 16px 16px;background:rgba(204,0,0,0.05);border-color:rgba(204,0,0,0.25);">
+      <div class="admin-card-header">
+        <span class="card-icon">🚫</span>
+        <h3>Hard Block a Date</h3>
+      </div>
+      <div class="admin-card-body">
+        <p style="font-size:12px;color:rgba(255,255,255,0.45);margin:0 0 14px;line-height:1.6;">
+          Block an entire date so <strong style="color:rgba(255,255,255,0.7);">all slots</strong> show as closed and cannot be booked. Choose a specific court or block both at once.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="admin-field" style="flex:2;min-width:130px;">
+            <label>Date to Block</label>
+            <input type="date" id="hardblock-date" class="admin-input">
+          </div>
+          <div class="admin-field" style="flex:2;min-width:130px;">
+            <label>Court</label>
+            <select id="hardblock-court" class="admin-input">
+              <option value="" style="background:#1a1a2e;">Both Courts</option>
+              <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1 only</option>
+              <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2 only</option>
+            </select>
+          </div>
+        </div>
+        <button id="hardblock-btn" onclick="adminAddDateBlock()"
+          style="width:100%;margin-top:10px;background:linear-gradient(135deg,#cc0000,#8a0000);border:none;border-radius:12px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#fff;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 16px rgba(204,0,0,0.35);">
+          🚫 Block Date
+        </button>
+        <!-- Existing date blocks list -->
+        <div style="margin-top:14px;">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Active Date Blocks</div>
+          <div id="admin-date-blocks-list" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="text-align:center;color:rgba(255,255,255,0.3);font-size:12px;padding:10px 0;">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SELECT TIME SLOT BLOCK / UNBLOCK CARD -->
+    <div class="admin-card" style="margin:0 16px 16px;background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.25);">
+      <div class="admin-card-header">
+        <span class="card-icon">⏰</span>
+        <h3>Block / Unblock a Specific Slot</h3>
+      </div>
+      <div class="admin-card-body">
+        <p style="font-size:12px;color:rgba(255,255,255,0.45);margin:0 0 4px;line-height:1.6;">
+          Select a <strong style="color:rgba(255,255,255,0.7);">date, time slot, and court</strong> to block or unblock it individually — without affecting other slots on the same day.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="admin-field" style="flex:2;min-width:130px;">
+            <label>Date</label>
+            <input type="date" id="slotblock-date" class="admin-input" onchange="adminSlotBlockPreview()">
+          </div>
+          <div class="admin-field" style="flex:2;min-width:130px;">
+            <label>Court</label>
+            <select id="slotblock-court" class="admin-input" onchange="adminSlotBlockPreview()">
+              <option value="Padel Court 1" style="background:#1a1a2e;">Padel Court 1</option>
+              <option value="Padel Court 2" style="background:#1a1a2e;">Padel Court 2</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-field">
+          <label>Time Slot</label>
+          <select id="slotblock-time" class="admin-input" onchange="adminSlotBlockPreview()">
+            <option value="" style="background:#1a1a2e;">— Select Time Slot —</option>
+            <option value="6:15 – 7:15 AM" style="background:#1a1a2e;">6:15 – 7:15 AM</option>
+            <option value="7:15 – 8:15 AM" style="background:#1a1a2e;">7:15 – 8:15 AM</option>
+            <option value="8:15 – 9:15 AM" style="background:#1a1a2e;">8:15 – 9:15 AM</option>
+            <option value="9:15 – 10:15 AM" style="background:#1a1a2e;">9:15 – 10:15 AM</option>
+            <option value="10:15 – 11:15 AM" style="background:#1a1a2e;">10:15 – 11:15 AM</option>
+            <option value="11:15 AM – 12:15 PM" style="background:#1a1a2e;">11:15 AM – 12:15 PM</option>
+            <option value="1:00 – 2:00 PM" style="background:#1a1a2e;">1:00 – 2:00 PM</option>
+            <option value="2:00 – 3:00 PM" style="background:#1a1a2e;">2:00 – 3:00 PM</option>
+            <option value="3:00 – 4:00 PM" style="background:#1a1a2e;">3:00 – 4:00 PM</option>
+            <option value="4:00 – 5:30 PM" style="background:#1a1a2e;">4:00 – 5:30 PM</option>
+            <option value="5:30 – 7:00 PM" style="background:#1a1a2e;">5:30 – 7:00 PM</option>
+            <option value="7:00 – 8:30 PM" style="background:#1a1a2e;">7:00 – 8:30 PM</option>
+            <option value="8:30 – 10:00 PM" style="background:#1a1a2e;">8:30 – 10:00 PM</option>
+            <option value="10:00 – 11:30 PM" style="background:#1a1a2e;">10:00 – 11:30 PM</option>
+            <option value="11:30 PM – 1:00 AM" style="background:#1a1a2e;">11:30 PM – 1:00 AM</option>
+          </select>
+        </div>
+        <!-- Preview pill -->
+        <div id="slotblock-preview" style="display:none;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);border-radius:10px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,0.7);line-height:1.6;">
+          <div id="slotblock-preview-text"></div>
+        </div>
+        <!-- Action buttons -->
+        <div style="display:flex;gap:10px;">
+          <button onclick="adminDoSlotBlock()" id="slotblock-block-btn"
+            style="flex:1;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#000;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;">
+            🚫 Block Slot
+          </button>
+          <button onclick="adminDoSlotUnblock()" id="slotblock-unblock-btn"
+            style="flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:12px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;">
+            ✓ Unblock Slot
+          </button>
+        </div>
+        <!-- Active slot blocks list -->
+        <div style="margin-top:6px;">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Active Slot Blocks</div>
+          <div id="admin-slot-blocks-list" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="text-align:center;color:rgba(255,255,255,0.3);font-size:12px;padding:10px 0;">No slot blocks set</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual block form - DISABLED (hidden) -->
     <div class="admin-card" style="display:none;margin:0 16px 8px;background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2);">
       <button class="admin-block-toggle" onclick="adminToggleBlockForm()" id="block-form-toggle">
         <div class="admin-block-toggle-left">
@@ -3842,21 +3958,46 @@ function acceptDisclaimer() {
 const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
 // adminManualBlocks declared at top level
 
-// ── Supabase helpers for blocked_slots table - DISABLED ──
+// ── Supabase helpers for date_blocks table ──
+// date_blocks: { id, court (null = all courts), date (YYYY-MM-DD), created_at }
+
 async function supaBlocksFetch() {
-  return []; // BLOCKING DISABLED
+  // Try Supabase first
+  try {
+    const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500';
+    const res = await fetch(url, { headers: SUPABASE_HEADERS });
+    if (res.ok) {
+      const rows = await res.json();
+      const blocks = rows.map(r => ({ court: r.court || null, date: r.date, time: r.time || null }));
+      localStorage.setItem('sxa_date_blocks', JSON.stringify(blocks));
+      return blocks;
+    }
+  } catch(e) { console.warn('supaBlocksFetch failed, using cache'); }
+  // Fallback to localStorage
+  try { return JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); } catch(e) { return []; }
 }
 
 async function supaBlockInsert(court, date, time) {
-  return null; // BLOCKING DISABLED
+  const payload = { date, court: court || null, time: time || null };
+  const insertHeaders = { ...SUPABASE_HEADERS, 'Prefer': 'return=minimal' };
+  const res = await fetch(SUPABASE_URL + '/rest/v1/date_blocks', {
+    method: 'POST', headers: insertHeaders, body: JSON.stringify(payload)
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
 }
 
 async function supaBlockDelete(court, date, time) {
-  return null; // BLOCKING DISABLED
+  let url = SUPABASE_URL + '/rest/v1/date_blocks?date=eq.' + encodeURIComponent(date);
+  if (court) url += '&court=eq.' + encodeURIComponent(court);
+  else        url += '&court=is.null';
+  if (time)   url += '&time=eq.' + encodeURIComponent(time);
+  else        url += '&time=is.null';
+  const res = await fetch(url, { method: 'DELETE', headers: SUPABASE_HEADERS });
+  if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
 }
 
 async function loadAdminBlocks() {
-  adminManualBlocks = []; // BLOCKING DISABLED
+  try { adminManualBlocks = await supaBlocksFetch(); } catch(e) { adminManualBlocks = []; }
 }
 
 // ── Supabase helpers for blocked_users table - DISABLED ──
@@ -4167,6 +4308,7 @@ function doAdminLogin() {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('admin-date').value = today;
   document.getElementById('block-date').value = today;
+  document.getElementById('slotblock-date').value = today;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-admin').classList.add('active');
@@ -4177,6 +4319,11 @@ function doAdminLogin() {
     adminSwitchTab('slots');
     adminRender();
     adminRenderManualBlocks();
+    // Load date blocks from Supabase/cache
+    loadAdminBlocks().then(() => {
+      adminRenderDateBlocks();
+      adminRenderSlotBlocks();
+    });
   }, 100);
 }
 
@@ -4216,7 +4363,7 @@ async function adminRender() {
     let statusColor = '#22c55e', statusLabel = 'Available', bg = 'rgba(34,197,94,0.08)', border = 'rgba(34,197,94,0.2)';
     if (isBooked && !blocked)  { statusColor='#cc0000'; statusLabel='Booked · '+(userBooked.userEmail||'User'); bg='rgba(204,0,0,0.1)'; border='rgba(204,0,0,0.3)'; }
     if (hardBlocked)           { statusColor='#f59e0b'; statusLabel='Hard Blocked'; bg='rgba(245,158,11,0.08)'; border='rgba(245,158,11,0.25)'; }
-    if (manualBlock)           { statusColor='#f59e0b'; statusLabel='Manually Blocked'; bg='rgba(245,158,11,0.08)'; border='rgba(245,158,11,0.25)'; }
+    if (manualBlock)           { statusColor='#ef4444'; statusLabel='Date Blocked'; bg='rgba(204,0,0,0.1)'; border='rgba(204,0,0,0.35)'; }
 
     const row = document.createElement('div');
     row.style.cssText = `display:flex;align-items:center;justify-content:space-between;background:${bg};border:1px solid ${border};border-radius:10px;padding:10px 14px;gap:10px;`;
@@ -4235,36 +4382,229 @@ async function adminRender() {
   });
 }
 
-async function adminAddBlock() {
-  // Function disabled - Manual slot blocking feature removed
-  toast('Slot blocking is disabled. All users can book any available slot.');
+// ── DATE HARD BLOCK ──
+async function adminAddDateBlock() {
+  const date   = document.getElementById('hardblock-date').value;
+  const court  = document.getElementById('hardblock-court').value; // '' = both courts
+  if (!date) { toast('Pick a date to block.', true); return; }
+
+  const courtLabel = court || 'Both Courts';
+  // Check if already blocked
+  const already = adminManualBlocks.some(b => b.date === date && (b.court === (court || null)));
+  if (already) { toast(`${date} (${courtLabel}) is already blocked.`, true); return; }
+
+  const btn = document.getElementById('hardblock-btn');
+  btn.textContent = 'Blocking…'; btn.disabled = true;
+
+  try {
+    await supaBlockInsert(court || null, date, null);
+    // Update local cache
+    adminManualBlocks.push({ court: court || null, date, time: null });
+    localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+    toast(`🚫 ${date} (${courtLabel}) blocked`);
+    adminRenderDateBlocks();
+    adminRender(); // refresh slot view
+  } catch(e) {
+    // Supabase table may not exist yet — save locally only
+    console.warn('supaBlockInsert failed:', e.message);
+    adminManualBlocks.push({ court: court || null, date, time: null });
+    localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+    toast(`🚫 ${date} (${courtLabel}) blocked (local)`);
+    adminRenderDateBlocks();
+    adminRender();
+  } finally {
+    btn.textContent = '🚫 Block Date'; btn.disabled = false;
+  }
 }
 
+async function adminRemoveDateBlock(court, date) {
+  const courtLabel = court || 'Both Courts';
+  try {
+    await supaBlockDelete(court || null, date, null);
+  } catch(e) {
+    console.warn('supaBlockDelete failed:', e.message);
+  }
+  adminManualBlocks = adminManualBlocks.filter(b => !(b.date === date && (b.court === (court || null)) && !b.time));
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+  toast(`✓ ${date} (${courtLabel}) unblocked`);
+  adminRenderDateBlocks();
+  adminRender();
+}
+
+function adminRenderDateBlocks() {
+  const container = document.getElementById('admin-date-blocks-list');
+  const dateBlocks = adminManualBlocks.filter(b => !b.time);
+  if (!dateBlocks.length) {
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);font-size:12px;padding:10px 0;">No dates blocked</div>';
+    return;
+  }
+  const sorted = [...dateBlocks].sort((a,b) => a.date.localeCompare(b.date));
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  container.innerHTML = sorted.map(b => {
+    const d = new Date(b.date + 'T00:00:00');
+    const label = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const courtLabel = b.court || 'Both Courts';
+    const safeCourt = (b.court || '').replace(/'/g, "\\'");
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(204,0,0,0.1);border:1px solid rgba(204,0,0,0.3);border-radius:10px;padding:10px 14px;gap:10px;">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#ff6b6b;">${label}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">🚫 ${courtLabel} · All slots closed</div>
+      </div>
+      <button onclick="adminRemoveDateBlock('${safeCourt}','${b.date}')"
+        style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);border-radius:8px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:#22c55e;cursor:pointer;white-space:nowrap;">
+        ✓ Unblock
+      </button>
+    </div>`;
+  }).join('');
+}
+
+// ── SLOT-LEVEL BLOCK ──
+
+function adminSlotBlockPreview() {
+  const date  = document.getElementById('slotblock-date').value;
+  const court = document.getElementById('slotblock-court').value;
+  const time  = document.getElementById('slotblock-time').value;
+  const preview = document.getElementById('slotblock-preview');
+  const text    = document.getElementById('slotblock-preview-text');
+  if (!date || !time) { preview.style.display = 'none'; return; }
+
+  const d = new Date(date + 'T00:00:00');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateLabel = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  const alreadyBlocked = adminManualBlocks.some(b =>
+    b.date === date && (b.court === null || b.court === court) && (b.time === null || b.time === time)
+  );
+
+  text.innerHTML = `<strong>${court}</strong> · ${dateLabel}<br>
+    <span style="color:#f59e0b;font-weight:700;">${time}</span><br>
+    Status: <strong style="color:${alreadyBlocked ? '#ef4444' : '#22c55e'};">${alreadyBlocked ? '🚫 Currently Blocked' : '✅ Currently Available'}</strong>`;
+  preview.style.display = 'block';
+}
+
+async function adminDoSlotBlock() {
+  const date  = document.getElementById('slotblock-date').value;
+  const court = document.getElementById('slotblock-court').value;
+  const time  = document.getElementById('slotblock-time').value;
+  if (!date) { toast('Pick a date.', true); return; }
+  if (!time) { toast('Pick a time slot.', true); return; }
+
+  const already = adminManualBlocks.some(b =>
+    b.date === date && (b.court === null || b.court === court) && (b.time === null || b.time === time)
+  );
+  if (already) { toast('This slot is already blocked.', true); return; }
+
+  const btn = document.getElementById('slotblock-block-btn');
+  btn.textContent = 'Blocking…'; btn.disabled = true;
+
+  try {
+    await supaBlockInsert(court, date, time);
+  } catch(e) {
+    console.warn('supaBlockInsert (slot) failed:', e.message);
+  }
+  adminManualBlocks.push({ court, date, time });
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+  toast(`🚫 Slot blocked: ${time} · ${court}`);
+  adminSlotBlockPreview();
+  adminRenderSlotBlocks();
+  adminRender();
+  btn.textContent = '🚫 Block Slot'; btn.disabled = false;
+}
+
+async function adminDoSlotUnblock() {
+  const date  = document.getElementById('slotblock-date').value;
+  const court = document.getElementById('slotblock-court').value;
+  const time  = document.getElementById('slotblock-time').value;
+  if (!date) { toast('Pick a date.', true); return; }
+  if (!time) { toast('Pick a time slot.', true); return; }
+
+  const exists = adminManualBlocks.some(b =>
+    b.date === date && b.court === court && b.time === time
+  );
+  if (!exists) { toast('This slot is not blocked.', true); return; }
+
+  const btn = document.getElementById('slotblock-unblock-btn');
+  btn.textContent = 'Unblocking…'; btn.disabled = true;
+
+  try {
+    await supaBlockDelete(court, date, time);
+  } catch(e) {
+    console.warn('supaBlockDelete (slot) failed:', e.message);
+  }
+  adminManualBlocks = adminManualBlocks.filter(b => !(b.date === date && b.court === court && b.time === time));
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+  toast(`✓ Slot unblocked: ${time} · ${court}`);
+  adminSlotBlockPreview();
+  adminRenderSlotBlocks();
+  adminRender();
+  btn.textContent = '✓ Unblock Slot'; btn.disabled = false;
+}
+
+function adminRenderSlotBlocks() {
+  const container = document.getElementById('admin-slot-blocks-list');
+  if (!container) return;
+  const slotBlocks = adminManualBlocks.filter(b => b.time);
+  if (!slotBlocks.length) {
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);font-size:12px;padding:10px 0;">No slot blocks set</div>';
+    return;
+  }
+  const sorted = [...slotBlocks].sort((a,b) => a.date.localeCompare(b.date) || (a.time||'').localeCompare(b.time||''));
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  container.innerHTML = sorted.map(b => {
+    const d = new Date(b.date + 'T00:00:00');
+    const label = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const safeCourt = (b.court || '').replace(/'/g, "\\'");
+    const safeTime  = (b.time  || '').replace(/'/g, "\\'");
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:10px 14px;gap:10px;">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:#f59e0b;">${b.time}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">${b.court} · ${label}</div>
+      </div>
+      <button onclick="adminRemoveBlock('${safeCourt}','${b.date}','${safeTime}')"
+        style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.35);border-radius:8px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:#22c55e;cursor:pointer;white-space:nowrap;">
+        ✓ Unblock
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function adminAddBlock() { toast('Use the Date Block or Slot Block section.', true); }
+
 async function adminQuickBlock(court, date, time) {
-  // Function disabled - Manual slot blocking feature removed
+  const already = adminManualBlocks.some(b => b.date === date && (b.court === null || b.court === court) && (b.time === null || b.time === time));
+  if (already) { toast('This slot is already blocked.', true); return; }
+  try {
+    await supaBlockInsert(court, date, time);
+  } catch(e) {
+    console.warn('supaBlockInsert failed (slot):', e.message);
+  }
+  adminManualBlocks.push({ court, date, time });
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+  toast(`🚫 Slot blocked: ${time}`);
+  adminRenderSlotBlocks();
+  adminRender();
 }
 
 async function adminRemoveBlock(court, date, time) {
-  // Function disabled - Manual slot blocking feature removed
-  toast('Slot unblocking is disabled. All slots are available for booking.');
+  try {
+    await supaBlockDelete(court, date, time);
+  } catch(e) {
+    console.warn('supaBlockDelete failed (slot):', e.message);
+  }
+  adminManualBlocks = adminManualBlocks.filter(b => !(b.date === date && b.court === court && b.time === time));
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+  toast(`✓ Slot unblocked: ${time}`);
+  adminRenderSlotBlocks();
+  adminRender();
 }
 
 function adminRenderManualBlocks() {
+  // Legacy function — slot-level manual blocks replaced by date blocks (hidden form).
   const container = document.getElementById('admin-manual-blocks');
-  if (!adminManualBlocks.length) { container.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;padding:8px 0;">No manual blocks set</div>'; return; }
-  const sorted = [...adminManualBlocks].sort((a,b) => a.date.localeCompare(b.date));
-  container.innerHTML = sorted.map(b => {
-    const d = new Date(b.date+'T00:00:00');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const label = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-    return `<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:8px 12px;">
-      <div>
-        <div style="font-size:13px;font-weight:700;color:#f59e0b;">${b.time}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.4);">${b.court} · ${label}</div>
-      </div>
-      <button onclick="adminRemoveBlock('${b.court}','${b.date}','${b.time.replace(/'/g,"\\'")}')" style="background:rgba(204,0,0,0.2);border:1px solid rgba(204,0,0,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:#ff6b6b;cursor:pointer;">Remove</button>
-    </div>`;
-  }).join('');
+  if (container) container.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;padding:8px 0;">No manual blocks set</div>';
 }
 
 // ============ ADMIN: BOOK FOR MEMBER ============
