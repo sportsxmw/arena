@@ -2470,18 +2470,7 @@ function isHardBlocked(court, dateVal, slotTime) {
       && [5,6,7].includes(mo) && y === 2026
       && [1,3,4].includes(dow)
       && slotTime === '5:30 – 7:00 PM') {
-    // EXCEPTIONS: Open slots (not blocked)
-    const openDates = [
-      '2026-05-25', '2026-05-27', '2026-05-28',
-      '2026-06-01', '2026-06-03', '2026-06-04', '2026-06-08', '2026-06-10', '2026-06-11',
-      '2026-06-15', '2026-06-17', '2026-06-18', '2026-06-22', '2026-06-24', '2026-06-25',
-      '2026-07-01', '2026-07-02', '2026-07-06', '2026-07-08', '2026-07-09',
-      '2026-07-13', '2026-07-15', '2026-07-16', '2026-07-20', '2026-07-22', '2026-07-23',
-      '2026-07-27', '2026-07-29', '2026-07-30'
-    ];
-    if (!openDates.includes(dateVal)) {
-      return true;
-    }
+    return true;
   }
 
   // ── RULE 2 ──────────────────────────────────────────────────────────────
@@ -2603,9 +2592,14 @@ function isBookedAlready(court, dateVal, slotTime) {
 }
 
 // ============ CLOSED SLOTS (show as "Closed" not "Booked") ============
-function isClosedSlot(slotTime) {
+function isClosedSlot(slotTime, dateVal) {
   // 6:15–8:15 AM morning sessions are permanently closed
-  return slotTime === '6:15 – 7:15 AM' || slotTime === '7:15 – 8:15 AM';
+  const isMorningSession = slotTime === '6:15 – 7:15 AM' || slotTime === '7:15 – 8:15 AM';
+  
+  // All time slots on May 28th 2026 are hardblocked
+  const isMay28th = dateVal === '2026-05-28';
+  
+  return isMorningSession || isMay28th;
 }
 
 async function renderSlots() {
@@ -2665,12 +2659,13 @@ async function renderSlots() {
       const isHardBlock   = isHardBlocked(selectedCourt, dateVal, slot.time);
       const isManualBlock = isAdminManualBlocked(selectedCourt, dateVal, slot.time);
       const isAlreadyBook = isBookedAlready(selectedCourt, dateVal, slot.time);
-      const isBooked      = !!existing || isHardBlock || isManualBlock || isAlreadyBook;
+      const isClosedDate  = isClosedSlot(slot.time, dateVal);
+      const isBooked      = !!existing || isHardBlock || isManualBlock || isAlreadyBook || isClosedDate;
       const isMine        = !isHardBlock && !isManualBlock && !isAlreadyBook && !!existing && CU && existing.userEmail === CU.email;
       let statusLabel;
       if (isMine)               statusLabel = 'Your Booking';
       else if (isAlreadyBook)   statusLabel = 'Booked Already';
-      else if (isClosedSlot(slot.time)) statusLabel = 'Closed';
+      else if (isClosedDate)    statusLabel = 'Closed';
       else if (isManualBlock)   statusLabel = 'Closed';
       else if (isBooked)        statusLabel = 'Booked';
       else                      statusLabel = 'Available';
