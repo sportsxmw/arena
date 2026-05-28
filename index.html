@@ -4344,6 +4344,21 @@ function adminLogout() {
 
 // ── SYNC HARD-BLOCKED DATES TO SUPABASE (mirror only, no effect on app logic) ──
 async function syncHardBlockedDates() {
+  const LAST_SYNC_KEY = 'sxa_blocked_dates_last_sync';
+  const lastSync = localStorage.getItem(LAST_SYNC_KEY);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Only sync if never synced before, or 30+ days have passed
+  if (lastSync) {
+    const daysSince = Math.floor((today - new Date(lastSync)) / (1000 * 60 * 60 * 24));
+    if (daysSince < 30) {
+      console.log('blocked_dates sync skipped — last sync was', daysSince, 'days ago');
+      return;
+    }
+  }
+
   const COURTS = ['Padel Court 1', 'Padel Court 2'];
   const ALL_TIMES = [
     '6:15 – 7:15 AM', '7:15 – 8:15 AM',
@@ -4351,12 +4366,8 @@ async function syncHardBlockedDates() {
     '4:00 – 5:30 PM', '5:30 – 7:00 PM', '7:00 – 8:30 PM', '8:30 – 10:00 PM', '10:00 – 11:30 PM'
   ];
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
   const windowEnd = new Date(today);
   windowEnd.setDate(windowEnd.getDate() + 30);
-
-  const todayStr     = today.toISOString().split('T')[0];
   const windowEndStr = windowEnd.toISOString().split('T')[0];
 
   // Build all hard-blocked slots for next 30 days
@@ -4390,6 +4401,8 @@ async function syncHardBlockedDates() {
     });
   }
 
+  // Save today as last sync date
+  localStorage.setItem(LAST_SYNC_KEY, todayStr);
   console.log('blocked_dates synced:', todayStr, '→', windowEndStr, ':', rows.length, 'slots');
 }
 
