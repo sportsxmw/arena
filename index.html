@@ -4352,15 +4352,16 @@ async function syncHardBlockedDates() {
   ];
 
   const today = new Date();
-  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-  const monthEnd   = new Date(today.getFullYear(), today.getMonth() + 1, 0); // last day of current month
+  today.setHours(0,0,0,0);
+  const windowEnd = new Date(today);
+  windowEnd.setDate(windowEnd.getDate() + 30);
 
-  const monthStartStr = monthStart.toISOString().split('T')[0];
-  const monthEndStr   = monthEnd.toISOString().split('T')[0];
+  const todayStr     = today.toISOString().split('T')[0];
+  const windowEndStr = windowEnd.toISOString().split('T')[0];
 
-  // Build all hard-blocked slots for current month only
+  // Build all hard-blocked slots for next 30 days
   const rows = [];
-  for (let d = new Date(monthStart); d <= monthEnd; d.setDate(d.getDate() + 1)) {
+  for (let d = new Date(today); d <= windowEnd; d.setDate(d.getDate() + 1)) {
     const dateStr = d.toISOString().split('T')[0];
     for (const court of COURTS) {
       for (const time of ALL_TIMES) {
@@ -4372,7 +4373,7 @@ async function syncHardBlockedDates() {
     }
   }
 
-  // Wipe everything (past months + current) then re-insert current month fresh
+  // Wipe everything then re-insert fresh 30-day window
   await fetch(SUPABASE_URL + '/rest/v1/blocked_dates?id=gte.0', {
     method: 'DELETE',
     headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json' }
@@ -4389,7 +4390,7 @@ async function syncHardBlockedDates() {
     });
   }
 
-  console.log('blocked_dates synced for', monthStartStr, '→', monthEndStr, ':', rows.length, 'slots');
+  console.log('blocked_dates synced:', todayStr, '→', windowEndStr, ':', rows.length, 'slots');
 }
 
 async function adminRender() {
