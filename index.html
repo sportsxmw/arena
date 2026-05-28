@@ -4869,10 +4869,41 @@ async function adminConfirmBookForMember() {
   const btn = document.getElementById('abm-confirm-btn');
   btn.textContent = 'Saving…'; btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none';
 
+  // Extract date string (YYYY-MM-DD format)
+  const dateStr = _abmSlot.date.includes('T') ? _abmSlot.date.split('T')[0] : _abmSlot.date;
+
+  // ── CHECK FOR HARD-BLOCKED SLOTS ──
+  if (isHardBlocked(_abmSlot.court, dateStr, _abmSlot.time)) {
+    toast('This slot is hard-blocked and cannot be booked.', true);
+    btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+    return;
+  }
+
+  // ── CHECK FOR MANUAL ADMIN BLOCKS ──
+  if (isAdminManualBlocked(_abmSlot.court, dateStr, _abmSlot.time)) {
+    toast('This slot is blocked by admin.', true);
+    btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+    return;
+  }
+
+  // ── CHECK FOR "BOOKED ALREADY" BLOCKS ──
+  if (isBookedAlready(_abmSlot.court, dateStr, _abmSlot.time)) {
+    toast('This slot is marked as booked already.', true);
+    btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+    return;
+  }
+
+  // ── CHECK FOR CLOSED SLOTS ──
+  if (isClosedSlot(_abmSlot.time, dateStr)) {
+    toast('This slot is closed and cannot be booked.', true);
+    btn.textContent = 'Confirm Booking ✓'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+    return;
+  }
+
   // Final live check — fetch directly from Supabase, skip local cache
   try {
     const checkUrl = SUPABASE_URL + '/rest/v1/Bookings?court=eq.' + encodeURIComponent(_abmSlot.court)
-      + '&date=eq.' + encodeURIComponent(_abmSlot.date + 'T00:00:00')
+      + '&date=eq.' + encodeURIComponent(dateStr + 'T00:00:00')
       + '&time=eq.' + encodeURIComponent(_abmSlot.time)
       + '&select=id&limit=1';
     const checkRes = await fetch(checkUrl, { headers: SUPABASE_HEADERS });
@@ -4889,7 +4920,7 @@ async function adminConfirmBookForMember() {
   }
 
   const cleanName = _abmMember.name.replace(' (Walk-in)', '');
-  const dateVal   = _abmSlot.date.includes('T') ? _abmSlot.date : _abmSlot.date + 'T00:00:00';
+  const dateVal   = dateStr + 'T00:00:00';
   const booking = {
     name:           cleanName,
     date:           dateVal,
@@ -4900,7 +4931,7 @@ async function adminConfirmBookForMember() {
     user_email:     _abmMember.email,
     user_name:      cleanName,
     payment_method: _abmMember.isGuest ? 'admin_walkin' : 'admin_booking',
-    payment_status: _abmPayStatus || 'paid'
+    status:         'confirmed'
   };
 
   console.log('Admin booking payload:', JSON.stringify(booking));
@@ -4910,7 +4941,17 @@ async function adminConfirmBookForMember() {
     // Update local cache so admin slot view refreshes instantly
     const bookedAt = new Date().toISOString();
     const all = DB.bookings();
-    all.push({ court: booking.court, date: booking.date, time: booking.time, price: booking.price, duration: booking.duration, userEmail: _abmMember.email, bookedAt });
+    all.push({ 
+      court: booking.court, 
+      date: booking.date, 
+      time: booking.time, 
+      price: booking.price, 
+      duration: booking.duration, 
+      userEmail: _abmMember.email, 
+      bookedAt,
+      paymentMethod: booking.payment_method,
+      status: 'confirmed'
+    });
     DB.saveBookings(all);
     toast('✓ Booking created for ' + _abmMember.name);
     adminCloseBookForMember();
