@@ -4330,6 +4330,8 @@ function doAdminLogin() {
       adminRenderDateBlocks();
       adminRenderSlotBlocks();
     });
+    // Sync hard-blocked dates to Supabase blocked_dates table (mirror only)
+    syncHardBlockedDates().catch(e => console.warn('blocked_dates sync failed:', e.message));
   }, 100);
 }
 
@@ -4338,6 +4340,56 @@ function adminLogout() {
   document.getElementById('screen-landing').classList.add('active');
   document.getElementById('bottom-nav').style.display = 'none';
   document.getElementById('app-footer').style.display = 'flex';
+}
+
+// ── SYNC HARD-BLOCKED DATES TO SUPABASE (mirror only, no effect on app logic) ──
+async function syncHardBlockedDates() {
+  const COURTS = ['Padel Court 1', 'Padel Court 2'];
+  const ALL_TIMES = [
+    '6:15 – 7:15 AM', '7:15 – 8:15 AM',
+    '8:15 – 9:15 AM', '9:15 – 10:15 AM', '10:15 – 11:15 AM', '11:15 AM – 12:15 PM',
+    '4:00 – 5:30 PM', '5:30 – 7:00 PM', '7:00 – 8:30 PM', '8:30 – 10:00 PM', '10:00 – 11:30 PM'
+  ];
+
+  const today = new Date();
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const monthEnd   = new Date(today.getFullYear(), today.getMonth() + 1, 0); // last day of current month
+
+  const monthStartStr = monthStart.toISOString().split('T')[0];
+  const monthEndStr   = monthEnd.toISOString().split('T')[0];
+
+  // Build all hard-blocked slots for current month only
+  const rows = [];
+  for (let d = new Date(monthStart); d <= monthEnd; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
+    for (const court of COURTS) {
+      for (const time of ALL_TIMES) {
+        const hard   = isHardBlocked(court, dateStr, time);
+        const closed = isClosedSlot(time, dateStr);
+        if (hard)        rows.push({ court, date: dateStr, time, reason: 'hard_block' });
+        else if (closed) rows.push({ court, date: dateStr, time, reason: 'closed' });
+      }
+    }
+  }
+
+  // Wipe everything (past months + current) then re-insert current month fresh
+  await fetch(SUPABASE_URL + '/rest/v1/blocked_dates?id=gte.0', {
+    method: 'DELETE',
+    headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json' }
+  });
+
+  // Insert in batches of 200
+  const BATCH = 200;
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH);
+    await fetch(SUPABASE_URL + '/rest/v1/blocked_dates', {
+      method: 'POST',
+      headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(batch)
+    });
+  }
+
+  console.log('blocked_dates synced for', monthStartStr, '→', monthEndStr, ':', rows.length, 'slots');
 }
 
 async function adminRender() {
