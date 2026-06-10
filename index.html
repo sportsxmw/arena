@@ -5059,6 +5059,7 @@ function adminSecretTap() {
 // Secret keyboard shortcut: type "sxadmin" anywhere on the page
 let _adminKeySeq = '';
 document.addEventListener('keydown', function(e) {
+  if (!e.key || e.key.length > 1) return; // ignore undefined, Shift, Ctrl, etc.
   _adminKeySeq += e.key.toLowerCase();
   if (_adminKeySeq.length > 7) _adminKeySeq = _adminKeySeq.slice(-7);
   if (_adminKeySeq === 'sxadmin') { _adminKeySeq = ''; openAdminLogin(); }
