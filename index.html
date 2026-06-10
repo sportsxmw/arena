@@ -2647,10 +2647,9 @@ async function renderSlots() {
   // Fetch admin manual blocks from Supabase so all users see them live
   // Load from localStorage first as backup
   try { 
-    const localBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]');
     const supaBlocks = await supaBlocksFetch();
-    // Merge: Supabase takes priority, but local blocks are preserved if Supabase is empty
-    adminManualBlocks = supaBlocks.length > 0 ? supaBlocks : localBlocks;
+    // supaBlocksFetch already syncs localStorage — trust its result directly
+    adminManualBlocks = supaBlocks;
   } catch(e) { 
     // If everything fails, use localStorage
     try { adminManualBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); } catch(e2) { }
@@ -3977,28 +3976,24 @@ const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
 // date_blocks: { id, court (null = all courts), date (YYYY-MM-DD), created_at }
 
 async function supaBlocksFetch() {
-  // Load current blocks from localStorage first
+  // Load current blocks from localStorage first (fallback if Supabase unreachable)
   let localBlocks = [];
   try { localBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); } catch(e) { }
-  
-  // Try to sync with Supabase
+
+  // Try to sync with Supabase — always trust the Supabase response when reachable
   try {
     const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500';
     const res = await fetch(url, { headers: SUPABASE_HEADERS });
     if (res.ok) {
       const rows = await res.json();
       const supaBlocks = rows.map(r => ({ court: r.court || null, date: r.date, time: r.time || null }));
-      
-      // IMPORTANT: Only update if we actually got data from Supabase
-      // If Supabase is empty, keep the local blocks (don't overwrite with empty array)
-      if (supaBlocks.length > 0) {
-        localStorage.setItem('sxa_date_blocks', JSON.stringify(supaBlocks));
-        return supaBlocks;
-      }
+      // Supabase is the source of truth — always sync localStorage to match it
+      localStorage.setItem('sxa_date_blocks', JSON.stringify(supaBlocks));
+      return supaBlocks;
     }
   } catch(e) { console.warn('supaBlocksFetch failed, using local cache'); }
-  
-  // Return local blocks (either from localStorage or merged with Supabase data)
+
+  // Only fall back to localStorage when Supabase is completely unreachable
   return localBlocks;
 }
 
