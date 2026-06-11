@@ -2617,6 +2617,10 @@ function isHardBlocked(court, dateVal, slotTime) {
     return true;
   }
 
+  // ── RULE 10 ─────────────────────────────────────────────────────────────
+  // June 21 2026 | All slots | Both Courts — FULL DAY BLOCK
+  if (dateVal === '2026-06-21') return true;
+
   // ── RULE 9 ──────────────────────────────────────────────────────────────
   // Every Monday of May → Nov 30 | 7:00–8:30 PM | Court 1
   // EXCEPT all of July, with July 6 re-included
