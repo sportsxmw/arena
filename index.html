@@ -2286,11 +2286,21 @@ let adminManualBlocks = []; // date_blocks loaded from Supabase on admin login a
 
 // Initialize blocks from localStorage on page load (fallback)
 try { 
-  adminManualBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); 
-  console.log('Loaded blocks from localStorage:', adminManualBlocks.length);
+  const stored = localStorage.getItem('sxa_date_blocks');
+  console.log('📦 localStorage sxa_date_blocks:', stored);
+  adminManualBlocks = JSON.parse(stored || '[]'); 
+  console.log('✅ Loaded blocks from localStorage:', adminManualBlocks.length, 'blocks');
 } catch(e) { 
-  console.warn('Failed to load blocks from localStorage:', e.message);
+  console.error('❌ Failed to load blocks from localStorage:', e.message);
 }
+
+// Expose for manual testing
+window.debugBlocks = () => {
+  console.log('=== BLOCKS DEBUG ===');
+  console.log('adminManualBlocks array:', adminManualBlocks);
+  console.log('localStorage sxa_date_blocks:', localStorage.getItem('sxa_date_blocks'));
+};
+console.log('💡 Run debugBlocks() in console to check status');
 let pendingDate   = null;
 let pendingAvatar = null; // temp avatar data URL while editing
 
@@ -4031,16 +4041,7 @@ const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
 // date_blocks: { id, court (null = all courts), date (YYYY-MM-DD), created_at }
 
 async function supaBlocksFetch() {
-  // Load current blocks from localStorage first (fallback if Supabase unreachable)
-  let localBlocks = [];
-  try { 
-    localBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); 
-    console.log('📦 Loaded from localStorage:', localBlocks.length, 'blocks');
-  } catch(e) { 
-    console.error('Failed to load from localStorage:', e.message);
-  }
-
-  // Try to sync with Supabase
+  // Try Supabase first — it is the source of truth when reachable
   try {
     const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500';
     console.log('🔍 Fetching blocks from Supabase...');
@@ -4052,21 +4053,9 @@ async function supaBlocksFetch() {
       const supaBlocks = rows.map(r => ({ court: r.court || null, date: r.date, time: r.time || null }));
       console.log('✅ Fetched from Supabase:', supaBlocks.length, 'blocks');
       
-      // MERGE: Combine Supabase blocks with local blocks that might not be synced yet
-      const merged = [...supaBlocks];
-      localBlocks.forEach(local => {
-        const exists = merged.some(s => s.date === local.date && s.court === local.court && s.time === local.time);
-        if (!exists) {
-          console.log('↔️ Merging local block:', local);
-          merged.push(local);
-        }
-      });
-      
-      console.log('🔀 Merged total:', merged.length, 'blocks');
-      
-      // Sync merged result back to localStorage
-      localStorage.setItem('sxa_date_blocks', JSON.stringify(merged));
-      return merged;
+      // Supabase is authoritative — overwrite localStorage with its data
+      localStorage.setItem('sxa_date_blocks', JSON.stringify(supaBlocks));
+      return supaBlocks;
     } else {
       console.error('❌ Supabase fetch failed:', res.status, res.statusText);
     }
@@ -4074,8 +4063,14 @@ async function supaBlocksFetch() {
     console.error('🌐 Network error fetching from Supabase:', e.message);
   }
 
-  // Fall back to localStorage when Supabase is unreachable
-  console.log('⚠️ Using localStorage fallback:', localBlocks.length, 'blocks');
+  // Fall back to localStorage only when Supabase is unreachable
+  let localBlocks = [];
+  try { 
+    localBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); 
+    console.log('⚠️ Using localStorage fallback:', localBlocks.length, 'blocks');
+  } catch(e) { 
+    console.error('Failed to load from localStorage:', e.message);
+  }
   return localBlocks;
 }
 
@@ -4613,51 +4608,63 @@ async function adminRender() {
 // ── DATE HARD BLOCK ──
 async function adminAddDateBlock() {
   const date   = document.getElementById('hardblock-date').value;
-  const court  = document.getElementById('hardblock-court').value; // '' = both courts
+  const court  = document.getElementById('hardblock-court').value;
   if (!date) { toast('Pick a date to block.', true); return; }
 
   const courtLabel = court || 'Both Courts';
-  // Check if already blocked
   const already = adminManualBlocks.some(b => b.date === date && (b.court === (court || null)));
   if (already) { toast(`${date} (${courtLabel}) is already blocked.`, true); return; }
 
   const btn = document.getElementById('hardblock-btn');
   btn.textContent = 'Blocking…'; btn.disabled = true;
 
+  let supaSynced = false;
+
   try {
-    // Try Supabase FIRST (wait for response)
     await supaBlockInsert(court || null, date, null);
-    console.log('✅ Synced to Supabase successfully');
+    supaSynced = true;
+    console.log('✅ Synced to Supabase');
   } catch(e) {
-    if (!e.message.includes('409') && !e.message.includes('duplicate')) {
-      console.error('⚠️ Supabase sync failed but saving locally:', e.message);
+    if (e.message.includes('409') || e.message.includes('duplicate')) {
+      supaSynced = true; // Already exists, that's fine
+    } else {
+      console.error('❌ Supabase failed:', e.message);
+      toast('⚠️ Block saved locally (Supabase sync failed)', true);
     }
   }
 
-  // ✅ Save to local (always, whether Supabase worked or not)
+  // Save to localStorage
   adminManualBlocks.push({ court: court || null, date, time: null });
   localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-  toast(`🚫 ${date} (${courtLabel}) blocked`);
+
+  if (supaSynced) {
+    toast(`🚫 ${date} (${courtLabel}) blocked (synced)`);
+  } else {
+    toast(`🚫 ${date} (${courtLabel}) blocked (local only)`);
+  }
+
   adminRenderDateBlocks();
   adminRender();
-  
   btn.textContent = '🚫 Block Date'; btn.disabled = false;
 }
 
 async function adminRemoveDateBlock(court, date) {
   const courtLabel = court || 'Both Courts';
-  
-  // ✅ REMOVE BLOCK IMMEDIATELY (frontend is source of truth)
+
+  // Optimistically remove from UI and localStorage
   adminManualBlocks = adminManualBlocks.filter(b => !(b.date === date && (b.court === (court || null)) && !b.time));
   localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-  toast(`✓ ${date} (${courtLabel}) unblocked`);
   adminRenderDateBlocks();
   adminRender();
 
-  // 🔄 Sync deletion to Supabase in background (fire and forget)
-  supaBlockDelete(court || null, date, null).catch(e => {
-    console.warn('Supabase delete sync failed:', e.message);
-  });
+  // Await Supabase delete so failure is visible
+  try {
+    await supaBlockDelete(court || null, date, null);
+    toast(`\u2713 ${date} (${courtLabel}) unblocked`);
+  } catch(e) {
+    console.error('Supabase delete failed:', e.message);
+    toast(`\u26a0\ufe0f Unblocked locally but Supabase sync failed \u2014 other devices may still see this block`, true);
+  }
 }
 
 function adminRenderDateBlocks() {
@@ -4713,7 +4720,7 @@ function adminSlotBlockPreview() {
   preview.style.display = 'block';
 }
 
-function adminDoSlotBlock() {
+async function adminDoSlotBlock() {
   const date  = document.getElementById('slotblock-date').value;
   const court = document.getElementById('slotblock-court').value;
   const time  = document.getElementById('slotblock-time').value;
@@ -4728,21 +4735,34 @@ function adminDoSlotBlock() {
   const btn = document.getElementById('slotblock-block-btn');
   btn.textContent = 'Blocking…'; btn.disabled = true;
 
-  // Try Supabase insert (async but we wait)
-  supaBlockInsert(court, date, time).catch(e => {
-    if (!e.message.includes('409') && !e.message.includes('duplicate')) {
-      console.error('⚠️ Supabase sync failed but saving locally:', e.message);
+  let supaSynced = false;
+
+  try {
+    await supaBlockInsert(court, date, time);
+    supaSynced = true;
+    console.log('✅ Slot synced to Supabase');
+  } catch(e) {
+    if (e.message.includes('409') || e.message.includes('duplicate')) {
+      supaSynced = true;
+    } else {
+      console.error('❌ Supabase failed:', e.message);
+      toast('⚠️ Block saved locally (Supabase sync failed)', true);
     }
-  }).finally(() => {
-    // ✅ Save to local (always)
-    adminManualBlocks.push({ court, date, time });
-    localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-    toast(`🚫 Slot blocked: ${time} · ${court}`);
-    adminSlotBlockPreview();
-    adminRenderSlotBlocks();
-    adminRender();
-    btn.textContent = '🚫 Block Slot'; btn.disabled = false;
-  });
+  }
+
+  adminManualBlocks.push({ court, date, time });
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+
+  if (supaSynced) {
+    toast(`🚫 Slot blocked: ${time} · ${court} (synced)`);
+  } else {
+    toast(`🚫 Slot blocked: ${time} · ${court} (local only)`);
+  }
+
+  adminSlotBlockPreview();
+  adminRenderSlotBlocks();
+  adminRender();
+  btn.textContent = '🚫 Block Slot'; btn.disabled = false;
 }
 
 async function adminDoSlotUnblock() {
@@ -4757,18 +4777,21 @@ async function adminDoSlotUnblock() {
   );
   if (!exists) { toast('This slot is not blocked.', true); return; }
 
-  // ✅ REMOVE BLOCK IMMEDIATELY (frontend is source of truth)
+  // Optimistically remove from UI and localStorage
   adminManualBlocks = adminManualBlocks.filter(b => !(b.date === date && b.court === court && b.time === time));
   localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-  toast(`✓ Slot unblocked: ${time} · ${court}`);
   adminSlotBlockPreview();
   adminRenderSlotBlocks();
   adminRender();
 
-  // 🔄 Sync deletion to Supabase in background (fire and forget)
-  supaBlockDelete(court, date, time).catch(e => {
-    console.warn('Supabase delete sync failed:', e.message);
-  });
+  // Await Supabase delete so failure is visible
+  try {
+    await supaBlockDelete(court, date, time);
+    toast(`\u2713 Slot unblocked: ${time} \u00b7 ${court}`);
+  } catch(e) {
+    console.error('Supabase delete failed:', e.message);
+    toast(`\u26a0\ufe0f Unblocked locally but Supabase sync failed \u2014 other devices may still see this block`, true);
+  }
 }
 
 function adminRenderSlotBlocks() {
