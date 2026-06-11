@@ -2235,7 +2235,13 @@ let selectedCourt = 'Padel Court 1';
 let selectedSlot  = null;
 let adminManualBlocks = []; // date_blocks loaded from Supabase on admin login and on renderSlots
 
-// isAdminManualBlocked declared at top level
+// Initialize blocks from localStorage on page load (fallback)
+try { 
+  adminManualBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); 
+  console.log('Loaded blocks from localStorage:', adminManualBlocks.length);
+} catch(e) { 
+  console.warn('Failed to load blocks from localStorage:', e.message);
+}
 let pendingDate   = null;
 let pendingAvatar = null; // temp avatar data URL while editing
 
@@ -3978,32 +3984,94 @@ const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
 async function supaBlocksFetch() {
   // Load current blocks from localStorage first (fallback if Supabase unreachable)
   let localBlocks = [];
-  try { localBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); } catch(e) { }
+  try { 
+    localBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); 
+    console.log('📦 Loaded from localStorage:', localBlocks.length, 'blocks');
+  } catch(e) { 
+    console.error('Failed to load from localStorage:', e.message);
+  }
 
-  // Try to sync with Supabase — always trust the Supabase response when reachable
+  // Try to sync with Supabase
   try {
     const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500';
+    console.log('🔍 Fetching blocks from Supabase...');
+    
     const res = await fetch(url, { headers: SUPABASE_HEADERS });
+    
     if (res.ok) {
       const rows = await res.json();
       const supaBlocks = rows.map(r => ({ court: r.court || null, date: r.date, time: r.time || null }));
-      // Supabase is the source of truth — always sync localStorage to match it
-      localStorage.setItem('sxa_date_blocks', JSON.stringify(supaBlocks));
-      return supaBlocks;
+      console.log('✅ Fetched from Supabase:', supaBlocks.length, 'blocks');
+      
+      // MERGE: Combine Supabase blocks with local blocks that might not be synced yet
+      const merged = [...supaBlocks];
+      localBlocks.forEach(local => {
+        const exists = merged.some(s => s.date === local.date && s.court === local.court && s.time === local.time);
+        if (!exists) {
+          console.log('↔️ Merging local block:', local);
+          merged.push(local);
+        }
+      });
+      
+      console.log('🔀 Merged total:', merged.length, 'blocks');
+      
+      // Sync merged result back to localStorage
+      localStorage.setItem('sxa_date_blocks', JSON.stringify(merged));
+      return merged;
+    } else {
+      console.error('❌ Supabase fetch failed:', res.status, res.statusText);
     }
-  } catch(e) { console.warn('supaBlocksFetch failed, using local cache'); }
+  } catch(e) { 
+    console.error('🌐 Network error fetching from Supabase:', e.message);
+  }
 
-  // Only fall back to localStorage when Supabase is completely unreachable
+  // Fall back to localStorage when Supabase is unreachable
+  console.log('⚠️ Using localStorage fallback:', localBlocks.length, 'blocks');
   return localBlocks;
 }
 
 async function supaBlockInsert(court, date, time) {
   const payload = { date, court: court || null, time: time || null };
   const insertHeaders = { ...SUPABASE_HEADERS, 'Prefer': 'return=minimal' };
-  const res = await fetch(SUPABASE_URL + '/rest/v1/date_blocks', {
-    method: 'POST', headers: insertHeaders, body: JSON.stringify(payload)
-  });
-  if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
+  
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/date_blocks', {
+      method: 'POST', 
+      headers: insertHeaders, 
+      body: JSON.stringify(payload)
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      const status = res.status;
+      
+      // Log detailed error for debugging
+      console.error('❌ Supabase insert failed:', {
+        status,
+        payload,
+        error: errorText
+      });
+      
+      // If 409 (duplicate), it's probably already there - that's ok
+      if (status === 409) {
+        console.log('ℹ️ Block already exists in Supabase (duplicate) - that\'s fine');
+        return;
+      }
+      
+      // If 403 (forbidden), likely RLS policy issue
+      if (status === 403) {
+        console.error('🔒 RLS POLICY ERROR - Check Supabase RLS settings on date_blocks table');
+        throw new Error('RLS_POLICY_ERROR');
+      }
+      
+      throw new Error(`HTTP ${status}: ${errorText}`);
+    }
+    
+    console.log('✅ Block saved to Supabase:', payload);
+  } catch(e) {
+    console.error('🌐 Network/Supabase error:', e.message);
+    throw e;
+  }
 }
 
 async function supaBlockDelete(court, date, time) {
@@ -4012,8 +4080,33 @@ async function supaBlockDelete(court, date, time) {
   else        url += '&court=is.null';
   if (time)   url += '&time=eq.' + encodeURIComponent(time);
   else        url += '&time=is.null';
-  const res = await fetch(url, { method: 'DELETE', headers: SUPABASE_HEADERS });
-  if (!res.ok) { const t = await res.text(); throw new Error('HTTP ' + res.status + ': ' + t); }
+  
+  try {
+    const res = await fetch(url, { method: 'DELETE', headers: SUPABASE_HEADERS });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      const status = res.status;
+      
+      console.error('❌ Supabase delete failed:', {
+        status,
+        url,
+        error: errorText
+      });
+      
+      if (status === 403) {
+        console.error('🔒 RLS POLICY ERROR - Check Supabase RLS settings');
+        throw new Error('RLS_POLICY_ERROR');
+      }
+      
+      throw new Error(`HTTP ${status}: ${errorText}`);
+    }
+    
+    console.log('✅ Block deleted from Supabase');
+  } catch(e) {
+    console.error('🌐 Network/Supabase error:', e.message);
+    throw e;
+  }
 }
 
 async function loadAdminBlocks() {
@@ -4469,7 +4562,7 @@ async function adminRender() {
 }
 
 // ── DATE HARD BLOCK ──
-async function adminAddDateBlock() {
+function adminAddDateBlock() {
   const date   = document.getElementById('hardblock-date').value;
   const court  = document.getElementById('hardblock-court').value; // '' = both courts
   if (!date) { toast('Pick a date to block.', true); return; }
@@ -4479,42 +4572,52 @@ async function adminAddDateBlock() {
   const already = adminManualBlocks.some(b => b.date === date && (b.court === (court || null)));
   if (already) { toast(`${date} (${courtLabel}) is already blocked.`, true); return; }
 
-  const btn = document.getElementById('hardblock-btn');
-  btn.textContent = 'Blocking…'; btn.disabled = true;
+  // ✅ APPLY BLOCK IMMEDIATELY (frontend is source of truth)
+  adminManualBlocks.push({ court: court || null, date, time: null });
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+  toast(`🚫 ${date} (${courtLabel}) blocked`);
+  adminRenderDateBlocks();
+  adminRender();
 
-  try {
-    await supaBlockInsert(court || null, date, null);
-    // Update local cache
-    adminManualBlocks.push({ court: court || null, date, time: null });
-    localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-    toast(`🚫 ${date} (${courtLabel}) blocked`);
-    adminRenderDateBlocks();
-    adminRender(); // refresh slot view
-  } catch(e) {
-    // Supabase table may not exist yet — save locally only
-    console.warn('supaBlockInsert failed:', e.message);
-    adminManualBlocks.push({ court: court || null, date, time: null });
-    localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-    toast(`🚫 ${date} (${courtLabel}) blocked (local)`);
-    adminRenderDateBlocks();
-    adminRender();
-  } finally {
-    btn.textContent = '🚫 Block Date'; btn.disabled = false;
-  }
+  // 🔄 Sync to Supabase with retry logic
+  const syncBlock = async (attempt = 1) => {
+    try {
+      await supaBlockInsert(court || null, date, null);
+      console.log('✅ Block synced to Supabase on attempt', attempt);
+    } catch(e) {
+      if (e.message.includes('409') || e.message.includes('duplicate')) {
+        console.log('ℹ️ Block already in Supabase');
+        return;
+      }
+      
+      // Retry up to 3 times
+      if (attempt < 3) {
+        console.log(`🔄 Retrying Supabase sync (attempt ${attempt + 1}/3)...`);
+        setTimeout(() => syncBlock(attempt + 1), 2000);
+      } else {
+        console.error('❌ Failed to sync block to Supabase after 3 attempts');
+        console.error('Block is saved locally but other users may not see it yet');
+      }
+    }
+  };
+  
+  syncBlock();
 }
 
 async function adminRemoveDateBlock(court, date) {
   const courtLabel = court || 'Both Courts';
-  try {
-    await supaBlockDelete(court || null, date, null);
-  } catch(e) {
-    console.warn('supaBlockDelete failed:', e.message);
-  }
+  
+  // ✅ REMOVE BLOCK IMMEDIATELY (frontend is source of truth)
   adminManualBlocks = adminManualBlocks.filter(b => !(b.date === date && (b.court === (court || null)) && !b.time));
   localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
   toast(`✓ ${date} (${courtLabel}) unblocked`);
   adminRenderDateBlocks();
   adminRender();
+
+  // 🔄 Sync deletion to Supabase in background (fire and forget)
+  supaBlockDelete(court || null, date, null).catch(e => {
+    console.warn('Supabase delete sync failed:', e.message);
+  });
 }
 
 function adminRenderDateBlocks() {
@@ -4570,7 +4673,7 @@ function adminSlotBlockPreview() {
   preview.style.display = 'block';
 }
 
-async function adminDoSlotBlock() {
+function adminDoSlotBlock() {
   const date  = document.getElementById('slotblock-date').value;
   const court = document.getElementById('slotblock-court').value;
   const time  = document.getElementById('slotblock-time').value;
@@ -4582,21 +4685,37 @@ async function adminDoSlotBlock() {
   );
   if (already) { toast('This slot is already blocked.', true); return; }
 
-  const btn = document.getElementById('slotblock-block-btn');
-  btn.textContent = 'Blocking…'; btn.disabled = true;
-
-  try {
-    await supaBlockInsert(court, date, time);
-  } catch(e) {
-    console.warn('supaBlockInsert (slot) failed:', e.message);
-  }
+  // ✅ APPLY BLOCK IMMEDIATELY (frontend is source of truth)
   adminManualBlocks.push({ court, date, time });
   localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
   toast(`🚫 Slot blocked: ${time} · ${court}`);
   adminSlotBlockPreview();
   adminRenderSlotBlocks();
   adminRender();
-  btn.textContent = '🚫 Block Slot'; btn.disabled = false;
+
+  // 🔄 Sync to Supabase with retry logic
+  const syncBlock = async (attempt = 1) => {
+    try {
+      await supaBlockInsert(court, date, time);
+      console.log('✅ Slot block synced to Supabase on attempt', attempt);
+    } catch(e) {
+      if (e.message.includes('409') || e.message.includes('duplicate')) {
+        console.log('ℹ️ Slot block already in Supabase');
+        return;
+      }
+      
+      // Retry up to 3 times
+      if (attempt < 3) {
+        console.log(`🔄 Retrying Supabase sync (attempt ${attempt + 1}/3)...`);
+        setTimeout(() => syncBlock(attempt + 1), 2000);
+      } else {
+        console.error('❌ Failed to sync slot block to Supabase after 3 attempts');
+        console.error('Block is saved locally but other users may not see it yet');
+      }
+    }
+  };
+  
+  syncBlock();
 }
 
 async function adminDoSlotUnblock() {
@@ -4611,21 +4730,18 @@ async function adminDoSlotUnblock() {
   );
   if (!exists) { toast('This slot is not blocked.', true); return; }
 
-  const btn = document.getElementById('slotblock-unblock-btn');
-  btn.textContent = 'Unblocking…'; btn.disabled = true;
-
-  try {
-    await supaBlockDelete(court, date, time);
-  } catch(e) {
-    console.warn('supaBlockDelete (slot) failed:', e.message);
-  }
+  // ✅ REMOVE BLOCK IMMEDIATELY (frontend is source of truth)
   adminManualBlocks = adminManualBlocks.filter(b => !(b.date === date && b.court === court && b.time === time));
   localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
   toast(`✓ Slot unblocked: ${time} · ${court}`);
   adminSlotBlockPreview();
   adminRenderSlotBlocks();
   adminRender();
-  btn.textContent = '✓ Unblock Slot'; btn.disabled = false;
+
+  // 🔄 Sync deletion to Supabase in background (fire and forget)
+  supaBlockDelete(court, date, time).catch(e => {
+    console.warn('Supabase delete sync failed:', e.message);
+  });
 }
 
 function adminRenderSlotBlocks() {
