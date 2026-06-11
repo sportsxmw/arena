@@ -2098,6 +2098,55 @@ const SUPABASE_HEADERS = {
   'Prefer': 'return=minimal'
 };
 
+// ═══════════════════════════════════════════════════════════════════════
+// DIAGNOSTIC TEST - Run this in console: testSupabaseConnection()
+// ═══════════════════════════════════════════════════════════════════════
+async function testSupabaseConnection() {
+  console.log('🧪 Testing Supabase connection...');
+  
+  try {
+    // Test 1: Can we reach Supabase?
+    console.log('1️⃣ Testing basic connectivity...');
+    const res1 = await fetch(SUPABASE_URL + '/rest/v1/', { headers: SUPABASE_HEADERS });
+    console.log('✅ Supabase is reachable:', res1.status);
+    
+    // Test 2: Can we read date_blocks table?
+    console.log('2️⃣ Testing date_blocks table read...');
+    const res2 = await fetch(SUPABASE_URL + '/rest/v1/date_blocks?limit=1', { headers: SUPABASE_HEADERS });
+    console.log('Response:', res2.status, await res2.text());
+    
+    // Test 3: Can we insert a test block?
+    console.log('3️⃣ Testing insert (will attempt to add a test block)...');
+    const testPayload = { date: '2026-12-31', court: 'TEST', time: null };
+    const res3 = await fetch(SUPABASE_URL + '/rest/v1/date_blocks', {
+      method: 'POST',
+      headers: SUPABASE_HEADERS,
+      body: JSON.stringify(testPayload)
+    });
+    const text3 = await res3.text();
+    console.log('Insert response:', res3.status, text3);
+    
+    if (res3.ok) {
+      console.log('✅ INSERT WORKS! Blocks can sync to Supabase');
+      // Try to delete it
+      await fetch(SUPABASE_URL + '/rest/v1/date_blocks?date=eq.2026-12-31&court=eq.TEST', {
+        method: 'DELETE',
+        headers: SUPABASE_HEADERS
+      });
+    } else if (res3.status === 409) {
+      console.log('✅ INSERT WORKS! (Got 409 duplicate, which is fine)');
+    } else {
+      console.error('❌ INSERT FAILED!', res3.status, text3);
+    }
+    
+  } catch(e) {
+    console.error('❌ Network error:', e.message);
+  }
+}
+
+console.log('✅ testSupabaseConnection() is ready. Run it in console!');
+
+
 async function supaInsert(booking) {
   const url = SUPABASE_URL + '/rest/v1/Bookings';
   const res = await fetch(url, {
@@ -4562,7 +4611,7 @@ async function adminRender() {
 }
 
 // ── DATE HARD BLOCK ──
-function adminAddDateBlock() {
+async function adminAddDateBlock() {
   const date   = document.getElementById('hardblock-date').value;
   const court  = document.getElementById('hardblock-court').value; // '' = both courts
   if (!date) { toast('Pick a date to block.', true); return; }
@@ -4572,36 +4621,27 @@ function adminAddDateBlock() {
   const already = adminManualBlocks.some(b => b.date === date && (b.court === (court || null)));
   if (already) { toast(`${date} (${courtLabel}) is already blocked.`, true); return; }
 
-  // ✅ APPLY BLOCK IMMEDIATELY (frontend is source of truth)
+  const btn = document.getElementById('hardblock-btn');
+  btn.textContent = 'Blocking…'; btn.disabled = true;
+
+  try {
+    // Try Supabase FIRST (wait for response)
+    await supaBlockInsert(court || null, date, null);
+    console.log('✅ Synced to Supabase successfully');
+  } catch(e) {
+    if (!e.message.includes('409') && !e.message.includes('duplicate')) {
+      console.error('⚠️ Supabase sync failed but saving locally:', e.message);
+    }
+  }
+
+  // ✅ Save to local (always, whether Supabase worked or not)
   adminManualBlocks.push({ court: court || null, date, time: null });
   localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
   toast(`🚫 ${date} (${courtLabel}) blocked`);
   adminRenderDateBlocks();
   adminRender();
-
-  // 🔄 Sync to Supabase with retry logic
-  const syncBlock = async (attempt = 1) => {
-    try {
-      await supaBlockInsert(court || null, date, null);
-      console.log('✅ Block synced to Supabase on attempt', attempt);
-    } catch(e) {
-      if (e.message.includes('409') || e.message.includes('duplicate')) {
-        console.log('ℹ️ Block already in Supabase');
-        return;
-      }
-      
-      // Retry up to 3 times
-      if (attempt < 3) {
-        console.log(`🔄 Retrying Supabase sync (attempt ${attempt + 1}/3)...`);
-        setTimeout(() => syncBlock(attempt + 1), 2000);
-      } else {
-        console.error('❌ Failed to sync block to Supabase after 3 attempts');
-        console.error('Block is saved locally but other users may not see it yet');
-      }
-    }
-  };
   
-  syncBlock();
+  btn.textContent = '🚫 Block Date'; btn.disabled = false;
 }
 
 async function adminRemoveDateBlock(court, date) {
@@ -4685,37 +4725,24 @@ function adminDoSlotBlock() {
   );
   if (already) { toast('This slot is already blocked.', true); return; }
 
-  // ✅ APPLY BLOCK IMMEDIATELY (frontend is source of truth)
-  adminManualBlocks.push({ court, date, time });
-  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-  toast(`🚫 Slot blocked: ${time} · ${court}`);
-  adminSlotBlockPreview();
-  adminRenderSlotBlocks();
-  adminRender();
+  const btn = document.getElementById('slotblock-block-btn');
+  btn.textContent = 'Blocking…'; btn.disabled = true;
 
-  // 🔄 Sync to Supabase with retry logic
-  const syncBlock = async (attempt = 1) => {
-    try {
-      await supaBlockInsert(court, date, time);
-      console.log('✅ Slot block synced to Supabase on attempt', attempt);
-    } catch(e) {
-      if (e.message.includes('409') || e.message.includes('duplicate')) {
-        console.log('ℹ️ Slot block already in Supabase');
-        return;
-      }
-      
-      // Retry up to 3 times
-      if (attempt < 3) {
-        console.log(`🔄 Retrying Supabase sync (attempt ${attempt + 1}/3)...`);
-        setTimeout(() => syncBlock(attempt + 1), 2000);
-      } else {
-        console.error('❌ Failed to sync slot block to Supabase after 3 attempts');
-        console.error('Block is saved locally but other users may not see it yet');
-      }
+  // Try Supabase insert (async but we wait)
+  supaBlockInsert(court, date, time).catch(e => {
+    if (!e.message.includes('409') && !e.message.includes('duplicate')) {
+      console.error('⚠️ Supabase sync failed but saving locally:', e.message);
     }
-  };
-  
-  syncBlock();
+  }).finally(() => {
+    // ✅ Save to local (always)
+    adminManualBlocks.push({ court, date, time });
+    localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+    toast(`🚫 Slot blocked: ${time} · ${court}`);
+    adminSlotBlockPreview();
+    adminRenderSlotBlocks();
+    adminRender();
+    btn.textContent = '🚫 Block Slot'; btn.disabled = false;
+  });
 }
 
 async function adminDoSlotUnblock() {
