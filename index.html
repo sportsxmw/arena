@@ -2621,6 +2621,17 @@ function isHardBlocked(court, dateVal, slotTime) {
   // June 21 2026 | All slots | Both Courts — FULL DAY BLOCK
   if (dateVal === '2026-06-21') return true;
 
+  // ── RULE 11 ─────────────────────────────────────────────────────────────
+  // Specific Fridays | 7:00–8:30 PM | Both Courts
+  // Jun 19, Jun 26, Jul 3, Jul 10, Jul 17, Jul 24, Jul 31 2026
+  const BLOCKED_FRIDAYS = [
+    '2026-06-19','2026-06-26',
+    '2026-07-03','2026-07-10','2026-07-17','2026-07-24','2026-07-31'
+  ];
+  if (BLOCKED_FRIDAYS.includes(dateVal) && slotTime === '7:00 – 8:30 PM') {
+    return true;
+  }
+
   // ── RULE 9 ──────────────────────────────────────────────────────────────
   // Every Monday of May → Nov 30 | 7:00–8:30 PM | Court 1
   // EXCEPT all of July, with July 6 re-included
