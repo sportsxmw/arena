@@ -4057,11 +4057,15 @@ const ADMIN_CREDS = { user: 'nikk', pass: 'Apple@900' };
 
 async function supaBlocksFetch() {
   // Try Supabase first — it is the source of truth when reachable
+  // Cache-bust with timestamp so browsers and service workers never return stale data
   try {
-    const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500';
+    const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500&_cb=' + Date.now();
     console.log('🔍 Fetching blocks from Supabase...');
     
-    const res = await fetch(url, { headers: SUPABASE_HEADERS });
+    const res = await fetch(url, {
+      headers: SUPABASE_HEADERS,
+      cache: 'no-store'   // bypass browser HTTP cache entirely
+    });
     
     if (res.ok) {
       const rows = await res.json();
@@ -4072,10 +4076,13 @@ async function supaBlocksFetch() {
       localStorage.setItem('sxa_date_blocks', JSON.stringify(supaBlocks));
       return supaBlocks;
     } else {
-      console.error('❌ Supabase fetch failed:', res.status, res.statusText);
+      // Non-ok response: throw so callers can react properly, and we don't silently use stale cache
+      const errorText = await res.text().catch(() => res.statusText);
+      console.error('❌ Supabase fetch failed:', res.status, errorText);
+      throw new Error('HTTP ' + res.status + ': ' + errorText);
     }
   } catch(e) { 
-    console.error('🌐 Network error fetching from Supabase:', e.message);
+    console.error('🌐 Network/Supabase error fetching blocks:', e.message);
   }
 
   // Fall back to localStorage only when Supabase is unreachable
@@ -4481,6 +4488,7 @@ function doAdminLogin() {
   document.getElementById('admin-date').value = today;
   document.getElementById('block-date').value = today;
   document.getElementById('slotblock-date').value = today;
+  document.getElementById('hardblock-date').value = today;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-admin').classList.add('active');
@@ -5257,6 +5265,19 @@ document.addEventListener('DOMContentLoaded', function() {
   badge.addEventListener('touchend', function() { clearTimeout(_adminLongPressTimer); });
   badge.addEventListener('touchmove', function() { clearTimeout(_adminLongPressTimer); });
 });
+
+// ── Eagerly load admin blocks from Supabase on every page load ──────────────
+// Without this, regular users only get blocks refreshed when they change dates.
+// If Supabase is unreachable we silently stay on the localStorage snapshot.
+(async function initBlocksOnLoad() {
+  try {
+    const fresh = await supaBlocksFetch();
+    adminManualBlocks = fresh;
+    console.log('🔄 Blocks pre-loaded on page open:', fresh.length);
+  } catch(e) {
+    console.warn('Could not pre-load blocks on startup:', e.message);
+  }
+})();
 </script>
 </body>
 </html>
