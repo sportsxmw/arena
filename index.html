@@ -4059,11 +4059,11 @@ async function supaBlocksFetch() {
   // Try Supabase first — it is the source of truth when reachable
   // Cache-bust with timestamp so browsers and service workers never return stale data
   try {
-    const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500&_cb=' + Date.now();
+    const url = SUPABASE_URL + '/rest/v1/date_blocks?select=*&limit=500';
     console.log('🔍 Fetching blocks from Supabase...');
     
     const res = await fetch(url, {
-      headers: SUPABASE_HEADERS,
+      headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' },
       cache: 'no-store'   // bypass browser HTTP cache entirely
     });
     
