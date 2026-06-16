@@ -2321,15 +2321,26 @@ const RIZWAN_BLOCKS = [
   {"court":"RIZWAN LIMBADA","date":"2026-11-24","time":"8:30 – 10:00 PM"}
 ];
 
+// HARD BLOCKS: Sirhaan Karim every Tuesday (Jun–Jul 2026) Court 1, 7:00–8:30 PM
+const SIRHAAN_BLOCKS = [
+  {"court":"Padel Court 1","date":"2026-06-23","time":"7:00 – 8:30 PM"},
+  {"court":"Padel Court 1","date":"2026-06-30","time":"7:00 – 8:30 PM"},
+  {"court":"Padel Court 1","date":"2026-07-07","time":"7:00 – 8:30 PM"},
+  {"court":"Padel Court 1","date":"2026-07-14","time":"7:00 – 8:30 PM"},
+  {"court":"Padel Court 1","date":"2026-07-21","time":"7:00 – 8:30 PM"},
+  {"court":"Padel Court 1","date":"2026-07-28","time":"7:00 – 8:30 PM"}
+];
+
 // Merge hard blocks with existing blocks, avoiding duplicates
+const ALL_HARD_BLOCKS = [...RIZWAN_BLOCKS, ...SIRHAAN_BLOCKS];
 adminManualBlocks = [
-  ...RIZWAN_BLOCKS,
+  ...ALL_HARD_BLOCKS,
   ...adminManualBlocks.filter(b => 
-    !RIZWAN_BLOCKS.some(rb => rb.court === b.court && rb.date === b.date && rb.time === b.time)
+    !ALL_HARD_BLOCKS.some(rb => rb.court === b.court && rb.date === b.date && rb.time === b.time)
   )
 ];
 localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
-console.log('🔐 HARD BLOCKS LOADED: 23 Rizwan Limbada Tuesday sessions (Jun-Nov 2026):', adminManualBlocks.length, 'total blocks');
+console.log('🔐 HARD BLOCKS LOADED: 23 Rizwan Limbada + 6 Sirhaan Karim Tuesday sessions (Jun-Nov 2026):', adminManualBlocks.length, 'total blocks');
 
 // Expose for manual testing
 window.debugBlocks = () => {
@@ -2778,11 +2789,24 @@ async function renderSlots() {
   // Load from localStorage first as backup
   try { 
     const supaBlocks = await supaBlocksFetch();
-    // supaBlocksFetch already syncs localStorage — trust its result directly
-    adminManualBlocks = supaBlocks;
+    // Merge Supabase blocks with hard-coded blocks (RIZWAN + SIRHAAN), avoiding duplicates
+    adminManualBlocks = [
+      ...ALL_HARD_BLOCKS,
+      ...supaBlocks.filter(b =>
+        !ALL_HARD_BLOCKS.some(hb => hb.court === b.court && hb.date === b.date && hb.time === b.time)
+      )
+    ];
   } catch(e) { 
-    // If everything fails, use localStorage
-    try { adminManualBlocks = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]'); } catch(e2) { }
+    // If everything fails, use localStorage merged with hard blocks
+    try {
+      const stored = JSON.parse(localStorage.getItem('sxa_date_blocks') || '[]');
+      adminManualBlocks = [
+        ...ALL_HARD_BLOCKS,
+        ...stored.filter(b =>
+          !ALL_HARD_BLOCKS.some(hb => hb.court === b.court && hb.date === b.date && hb.time === b.time)
+        )
+      ];
+    } catch(e2) { adminManualBlocks = [...ALL_HARD_BLOCKS]; }
   }
 
   container.innerHTML = '';
@@ -4379,7 +4403,15 @@ async function supaBlockDelete(court, date, time) {
 }
 
 async function loadAdminBlocks() {
-  try { adminManualBlocks = await supaBlocksFetch(); } catch(e) { adminManualBlocks = []; }
+  try {
+    const supaBlocks = await supaBlocksFetch();
+    adminManualBlocks = [
+      ...ALL_HARD_BLOCKS,
+      ...supaBlocks.filter(b =>
+        !ALL_HARD_BLOCKS.some(hb => hb.court === b.court && hb.date === b.date && hb.time === b.time)
+      )
+    ];
+  } catch(e) { adminManualBlocks = [...ALL_HARD_BLOCKS]; }
 }
 
 // ── Supabase helpers for blocked_users table - DISABLED ──
@@ -5811,8 +5843,13 @@ document.addEventListener('DOMContentLoaded', function() {
 (async function initBlocksOnLoad() {
   try {
     const fresh = await supaBlocksFetch();
-    adminManualBlocks = fresh;
-    console.log('🔄 Blocks pre-loaded on page open:', fresh.length);
+    adminManualBlocks = [
+      ...ALL_HARD_BLOCKS,
+      ...fresh.filter(b =>
+        !ALL_HARD_BLOCKS.some(hb => hb.court === b.court && hb.date === b.date && hb.time === b.time)
+      )
+    ];
+    console.log('🔄 Blocks pre-loaded on page open:', adminManualBlocks.length);
   } catch(e) {
     console.warn('Could not pre-load blocks on startup:', e.message);
   }
