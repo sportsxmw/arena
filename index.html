@@ -3925,13 +3925,45 @@ window.addEventListener('beforeinstallprompt', function(e) {
             </div>
           </div>
 
-          <div class="admin-field">
-            <label style="font-size:11px;">Member Name</label>
-            <input type="text" id="bulk-member-search" class="admin-input" placeholder="Search member..." style="margin-bottom:8px;">
-            <div id="bulk-member-list" style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:6px;background:rgba(0,0,0,0.3);"></div>
-            <div id="bulk-member-selected" style="margin-top:8px;padding:8px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;display:none;font-size:12px;color:rgba(255,255,255,0.8);">
-              <strong>Selected:</strong> <span id="bulk-member-name"></span>
+          <!-- Member Search (default) -->
+          <div id="bulk-member-mode">
+            <div class="admin-field" style="margin-bottom:6px;">
+              <label style="font-size:11px;">Member Name</label>
+              <input type="text" id="bulk-member-search" class="admin-input" placeholder="Search member..." style="margin-bottom:8px;">
+              <div id="bulk-member-list" style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:6px;background:rgba(0,0,0,0.3);"></div>
+              <div id="bulk-member-selected" style="margin-top:8px;padding:8px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;display:none;font-size:12px;color:rgba(255,255,255,0.8);">
+                <strong>Selected:</strong> <span id="bulk-member-name"></span>
+              </div>
             </div>
+            <button onclick="bulkToggleWalkInMode()" style="background:none;border:none;color:rgba(255,255,255,0.35);font-size:11px;font-weight:600;cursor:pointer;text-decoration:underline;font-family:'Barlow',sans-serif;padding:0;margin-top:4px;">
+              Not registered? Book as walk-in guest →
+            </button>
+          </div>
+
+          <!-- Walk-in Guest Form (hidden by default) -->
+          <div id="bulk-walkin-mode" style="display:none;">
+            <div class="admin-field" style="margin-bottom:10px;">
+              <label style="font-size:11px;">Guest Name *</label>
+              <input type="text" id="bulk-guest-name" class="admin-input" placeholder="Full name" autocomplete="off">
+            </div>
+            <div class="admin-field" style="margin-bottom:10px;">
+              <label style="font-size:11px;">Phone Number (optional)</label>
+              <input type="tel" id="bulk-guest-phone" class="admin-input" placeholder="+265..." autocomplete="off">
+            </div>
+            <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:8px;font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:10px;line-height:1.5;">
+              📌 Booking will be recorded as a walk-in guest. No member profile created.
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button onclick="bulkSelectGuestAndProceed()" style="flex:1;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:8px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#000;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;">
+                ✓ Confirm Guest
+              </button>
+              <button onclick="bulkToggleWalkInMode()" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,0.6);letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;">
+                Cancel
+              </button>
+            </div>
+            <button onclick="bulkToggleWalkInMode()" style="background:none;border:none;color:rgba(255,255,255,0.35);font-size:11px;font-weight:600;cursor:pointer;text-decoration:underline;font-family:'Barlow',sans-serif;padding:0;">
+              ← Back to member search
+            </button>
           </div>
         </div>
 
@@ -5609,6 +5641,59 @@ function bulkSelectMember(email, name) {
   bulkUpdateCounter();
 }
 
+function bulkToggleWalkInMode() {
+  const memberMode = document.getElementById('bulk-member-mode');
+  const walkInMode = document.getElementById('bulk-walkin-mode');
+  const showing = walkInMode.style.display !== 'none';
+  
+  memberMode.style.display = showing ? 'block' : 'none';
+  walkInMode.style.display = showing ? 'none' : 'block';
+  
+  // Clear fields when switching modes
+  if (!showing) {
+    // Switching TO walk-in
+    bulkSelectedMember = null;
+    document.getElementById('bulk-member-search').value = '';
+    document.getElementById('bulk-member-list').innerHTML = '';
+    document.getElementById('bulk-member-selected').style.display = 'none';
+  } else {
+    // Switching BACK to member search
+    document.getElementById('bulk-guest-name').value = '';
+    document.getElementById('bulk-guest-phone').value = '';
+    bulkSelectedMember = null;
+  }
+  
+  bulkUpdateCounter();
+}
+
+function bulkSelectGuestAndProceed() {
+  const name = document.getElementById('bulk-guest-name').value.trim();
+  const phone = document.getElementById('bulk-guest-phone').value.trim();
+  
+  if (!name) {
+    alert("Please enter the guest's name.");
+    return;
+  }
+  
+  // Create guest email similar to existing system
+  const safeName = name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
+  const safePhone = phone ? phone.replace(/\D/g, '') : Date.now();
+  const guestEmail = 'guest_' + safeName + '_' + safePhone + '@sxa.local';
+  
+  // Select the guest
+  bulkSelectedMember = { email: guestEmail, name: name + ' (Walk-in)', isGuest: true };
+  document.getElementById('bulk-guest-name').value = '';
+  document.getElementById('bulk-guest-phone').value = '';
+  document.getElementById('bulk-walkin-mode').style.display = 'none';
+  document.getElementById('bulk-member-mode').style.display = 'block';
+  
+  // Show selected confirmation
+  document.getElementById('bulk-member-selected').style.display = 'block';
+  document.getElementById('bulk-member-name').textContent = name + ' (Walk-in)';
+  
+  bulkUpdateCounter();
+}
+
 function bulkReset() {
   bulkSelectedDates.clear();
   bulkSelectedDOW.clear();
@@ -5617,7 +5702,11 @@ function bulkReset() {
   document.getElementById('bulk-end-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('bulk-time').value = '';
   document.getElementById('bulk-member-search').value = '';
+  document.getElementById('bulk-guest-name').value = '';
+  document.getElementById('bulk-guest-phone').value = '';
   document.getElementById('bulk-member-selected').style.display = 'none';
+  document.getElementById('bulk-member-mode').style.display = 'block';
+  document.getElementById('bulk-walkin-mode').style.display = 'none';
   document.getElementById('bulk-message').style.display = 'none';
   for (let i = 0; i < 7; i++) {
     const btn = document.getElementById(`bulk-dow-${i}`);
@@ -5659,18 +5748,22 @@ async function bulkConfirmBooking() {
   // Book each date
   for (const dateStr of dates) {
     try {
+      const cleanName = bulkSelectedMember.name.replace(' (Walk-in)', '');
+      const dateVal = dateStr + 'T00:00:00';
       const bookingData = {
-        member_email: bulkSelectedMember.email,
-        court,
-        date: dateStr,
-        time,
+        name: cleanName,
+        date: dateVal,
+        court: court,
+        time: time,
         price: parseInt(price),
-        duration,
-        paid: false,
+        duration: duration,
+        user_email: bulkSelectedMember.email,
+        user_name: cleanName,
+        payment_method: bulkSelectedMember.isGuest ? 'admin_walkin' : 'admin_booking',
         status: 'confirmed'
       };
       
-      const res = await supabase.from('SXABookings').insert([bookingData]);
+      const res = await supabase.from('Bookings').insert([bookingData]);
       if (res.error) throw res.error;
       successCount++;
     } catch(e) {
