@@ -1355,23 +1355,31 @@ body.dark .skeleton {
 .gallery-card { background: linear-gradient(145deg, #1a1a2e, #16213e) !important; box-shadow: 0 4px 16px rgba(26,26,46,0.5) !important; }
 .gallery-card:hover { box-shadow: 0 8px 28px rgba(26,26,46,0.7) !important; }
 .gallery-card .btn-book-sm { background: #a78bfa; color: #fff; }
+.gallery-card .facility-icon { background: rgba(167,139,250,0.18); box-shadow: 0 0 16px rgba(167,139,250,0.3); }
 /* Gym card */
 .gym-card { background: linear-gradient(145deg, #064e3b, #065f46) !important; box-shadow: 0 4px 16px rgba(6,78,59,0.45) !important; }
 .gym-card:hover { box-shadow: 0 8px 28px rgba(6,78,59,0.65) !important; }
 .gym-card .btn-book-sm { background: #34d399; color: #064e3b; }
+.gym-card .facility-icon { background: rgba(52,211,153,0.18); box-shadow: 0 0 16px rgba(52,211,153,0.3); }
 /* Events card */
 .events-card { background: linear-gradient(145deg, #7c2d12, #9a3412) !important; box-shadow: 0 4px 16px rgba(154,52,18,0.45) !important; }
 .events-card:hover { box-shadow: 0 8px 28px rgba(154,52,18,0.65) !important; }
 .events-card .btn-book-sm { background: #fb923c; color: #7c2d12; }
+.events-card .facility-icon { background: rgba(251,146,60,0.18); box-shadow: 0 0 16px rgba(251,146,60,0.3); }
+/* Padel card (base red theme) — explicit glow to match the others */
+.padel-card .facility-icon { background: rgba(255,255,255,0.18); box-shadow: 0 0 16px rgba(255,120,120,0.35); }
 
 /* Events screen list */
 #screen-events { background: var(--bg); overflow-y: auto; }
-.event-item { background: #16181f; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
-.event-item img { width: 100%; height: 170px; object-fit: cover; display: block; background: #0d0f16; }
+.event-item { background: #16181f; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.25); width: 100%; max-width: 440px; }
+.event-item img { width: 100%; height: auto; display: block; background: #0d0f16; }
 .event-item-body { padding: 14px 16px 16px; }
 .event-item-date { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #fb923c; margin-bottom: 4px; }
 .event-item-title { font-family: 'Antonio', sans-serif; font-size: 19px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
 .event-item-desc { font-size: 13.5px; color: rgba(255,255,255,0.6); line-height: 1.55; margin-top: 6px; }
+.event-book-btn { width: 100%; margin-top: 14px; background: linear-gradient(135deg,#fb923c,#c2410c); border: none; border-radius: 12px; padding: 12px; font-family: 'Antonio', sans-serif; font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 16px rgba(194,65,12,0.4); transition: transform 0.15s, box-shadow 0.15s; }
+.event-book-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(194,65,12,0.5); }
+.event-book-btn:active { transform: scale(0.98); }
 body.dark #screen-events .page-hdr { background: #0d0f16; border-color: #1e2130; }
 
 /* Dark mode gallery */
@@ -1618,7 +1626,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
   </div>
   <div class="section-title">Facilities</div>
   <div class="facilities-list">
-    <div class="facility-card" onclick="openBooking()">
+    <div class="facility-card padel-card" onclick="openBooking()">
       <div class="facility-card-inner">
         <div class="facility-left">
           <div class="facility-icon">
@@ -1983,7 +1991,7 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
     <h2>Events</h2>
     <div style="width:30px"></div>
   </div>
-  <div id="events-list" style="padding:16px;display:flex;flex-direction:column;gap:14px;">
+  <div id="events-list" style="padding:16px 16px 110px;display:flex;flex-direction:column;align-items:center;gap:14px;">
     <div style="text-align:center;color:rgba(255,255,255,0.35);padding:40px 0;font-size:14px;">Loading events…</div>
   </div>
 </div>
@@ -3212,6 +3220,7 @@ async function renderEvents() {
         <div class="event-item-title">${escapeHtml(ev.title)}</div>
         ${ev.location ? `<div class="event-item-desc" style="margin-top:2px;">📍 ${escapeHtml(ev.location)}</div>` : ''}
         ${ev.description ? `<div class="event-item-desc">${escapeHtml(ev.description)}</div>` : ''}
+        <button class="event-book-btn" onclick="openBooking()">Book Now</button>
       </div>
     </div>`;
   }).join('');
@@ -4071,46 +4080,32 @@ window.addEventListener('beforeinstallprompt', function(e) {
           Select a date range and day pattern, then book the same slot for multiple dates at once. Click dates on the calendar to add/remove.
         </p>
 
-        <!-- Step 1: Date Range + Pattern -->
+        <!-- Step 1: Select Month -->
         <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:12px;margin-bottom:12px;">
-          <div style="font-size:11px;font-weight:600;color:rgba(34,197,94,0.8);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">📅 Step 1: Select Date Range & Pattern</div>
-          
-          <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-            <div class="admin-field" style="flex:1;min-width:140px;">
-              <label style="font-size:11px;">Start Date</label>
-              <input type="date" id="bulk-start-date" class="admin-input" onchange="bulkUpdateCalendar()">
-            </div>
-            <div class="admin-field" style="flex:1;min-width:140px;">
-              <label style="font-size:11px;">End Date</label>
-              <input type="date" id="bulk-end-date" class="admin-input" onchange="bulkUpdateCalendar()">
-            </div>
+          <div style="font-size:11px;font-weight:600;color:rgba(34,197,94,0.8);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">📅 Step 1: Select Month</div>
+
+          <div class="admin-field" style="margin-bottom:10px;">
+            <label style="font-size:11px;">Month</label>
+            <input type="month" id="bulk-month" class="admin-input" onchange="bulkMonthChanged()">
           </div>
 
-          <!-- Day of Week Buttons -->
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px;">Pick specific days (or click dates below):</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-            <button onclick="bulkToggleDayOfWeek(0)" id="bulk-dow-0" class="bulk-dow-btn" style="flex:1;min-width:50px;padding:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;">Mon</button>
-            <button onclick="bulkToggleDayOfWeek(1)" id="bulk-dow-1" class="bulk-dow-btn" style="flex:1;min-width:50px;padding:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;">Tue</button>
-            <button onclick="bulkToggleDayOfWeek(2)" id="bulk-dow-2" class="bulk-dow-btn" style="flex:1;min-width:50px;padding:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;">Wed</button>
-            <button onclick="bulkToggleDayOfWeek(3)" id="bulk-dow-3" class="bulk-dow-btn" style="flex:1;min-width:50px;padding:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;">Thu</button>
-            <button onclick="bulkToggleDayOfWeek(4)" id="bulk-dow-4" class="bulk-dow-btn" style="flex:1;min-width:50px;padding:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;">Fri</button>
-            <button onclick="bulkToggleDayOfWeek(5)" id="bulk-dow-5" class="bulk-dow-btn" style="flex:1;min-width:50px;padding:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;">Sat</button>
-            <button onclick="bulkToggleDayOfWeek(6)" id="bulk-dow-6" class="bulk-dow-btn" style="flex:1;min-width:50px;padding:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;">Sun</button>
+          <div style="display:flex;gap:8px;">
+            <button onclick="bulkSelectAllDays()" style="flex:1;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:rgba(34,197,94,0.9);padding:8px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;">Select All Days</button>
+            <button onclick="bulkClearSelection()" style="flex:1;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.8);padding:8px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;">Clear Selection</button>
           </div>
-          <button onclick="bulkClearSelection()" style="width:100%;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.8);padding:6px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;">Clear Selection</button>
         </div>
 
-        <!-- Step 2: Calendar Preview -->
+        <!-- Step 2: Day-of-month Grid -->
         <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:12px;margin-bottom:12px;">
-          <div style="font-size:11px;font-weight:600;color:rgba(34,197,94,0.8);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">📌 Step 2: Click Dates to Add/Remove</div>
-          
+          <div style="font-size:11px;font-weight:600;color:rgba(34,197,94,0.8);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">📌 Step 2: Click Days to Add/Remove</div>
+
           <div id="bulk-calendar-preview" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:10px;">
-            <!-- Calendar will be rendered here -->
+            <!-- Day-of-month buttons rendered here -->
           </div>
 
           <!-- Selected Dates Count -->
           <div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:10px;text-align:center;">
-            <div style="font-size:13px;font-weight:600;color:rgba(34,197,94,0.9;">
+            <div style="font-size:13px;font-weight:600;color:rgba(34,197,94,0.9);">
               <span id="bulk-selected-count">0</span> dates selected
             </div>
             <div id="bulk-selected-display" style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;max-height:50px;overflow-y:auto;"></div>
@@ -4318,8 +4313,8 @@ window.addEventListener('beforeinstallprompt', function(e) {
         <div class="admin-field">
           <label>Event Flyer / Poster (optional)</label>
           <input type="file" id="event-image-input" accept="image/*" class="admin-input" onchange="handleEventImageUpload(event)">
-          <div id="event-image-preview" style="margin-top:8px;display:none;position:relative;">
-            <img id="event-image-preview-img" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;">
+          <div id="event-image-preview" style="margin-top:8px;display:none;position:relative;background:#0d0f16;border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;">
+            <img id="event-image-preview-img" style="display:block;width:100%;max-height:340px;object-fit:contain;border-radius:10px;">
             <button type="button" onclick="clearEventImage()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;">✕ Remove</button>
           </div>
         </div>
@@ -4855,7 +4850,7 @@ async function adminRenderEvents() {
     const whenText = whenParts.length ? whenParts.join(' · ') : 'No date set';
     return `
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px;display:flex;gap:10px;align-items:center;">
-      ${ev.image_url ? `<img src="${ev.image_url}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : `<div style="width:52px;height:52px;border-radius:8px;background:rgba(251,146,60,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🎉</div>`}
+      ${ev.image_url ? `<img src="${ev.image_url}" style="width:52px;height:52px;object-fit:contain;background:#0d0f16;border-radius:8px;flex-shrink:0;">` : `<div style="width:52px;height:52px;border-radius:8px;background:rgba(251,146,60,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🎉</div>`}
       <div style="flex:1;min-width:0;">
         <div style="font-weight:600;color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeTitle}</div>
         <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:2px;">${escapeHtml(whenText)}${ev.location ? ' · ' + escapeHtml(ev.location) : ''}</div>
@@ -5894,70 +5889,72 @@ function adminSecretTap() {
 // ════════════════════════════════════════════════════════════════
 
 let bulkSelectedDates = new Set(); // Track selected dates
-let bulkSelectedDOW = new Set(); // Track selected days of week (0-6)
 let bulkSelectedMember = null; // Track selected member
 
 // Initialize bulk booking on page load
 window.addEventListener('load', () => {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('bulk-start-date').value = today;
-  document.getElementById('bulk-end-date').value = today;
-  bulkUpdateCalendar();
+  const now = new Date();
+  const monthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('bulk-month').value = monthStr;
+  bulkMonthChanged();
   bulkLoadMembers();
 });
 
-function bulkToggleDayOfWeek(dow) {
-  const btn = document.getElementById(`bulk-dow-${dow}`);
-  if (bulkSelectedDOW.has(dow)) {
-    bulkSelectedDOW.delete(dow);
-    btn.style.background = 'rgba(255,255,255,0.08)';
-    btn.style.color = 'rgba(255,255,255,0.6)';
-  } else {
-    bulkSelectedDOW.add(dow);
-    btn.style.background = 'rgba(34,197,94,0.3)';
-    btn.style.color = 'rgba(34,197,94,0.9)';
-  }
-  bulkUpdateCalendar();
-}
-
 function bulkClearSelection() {
   bulkSelectedDates.clear();
-  bulkSelectedDOW.clear();
-  // Reset all DOW buttons
-  for (let i = 0; i < 7; i++) {
-    const btn = document.getElementById(`bulk-dow-${i}`);
-    btn.style.background = 'rgba(255,255,255,0.08)';
-    btn.style.color = 'rgba(255,255,255,0.6)';
-  }
-  bulkUpdateCalendar();
+  bulkRenderCurrentMonth();
+  bulkUpdateCounter();
 }
 
-function bulkUpdateCalendar() {
-  const startStr = document.getElementById('bulk-start-date').value;
-  const endStr = document.getElementById('bulk-end-date').value;
-  
-  if (!startStr || !endStr) return;
-  
-  const start = new Date(startStr);
-  const end = new Date(endStr);
-  
-  if (start > end) return;
-  
-  // Generate dates based on day-of-week filter
-  const newDates = new Set();
-  let current = new Date(start);
-  
-  while (current <= end) {
-    const dow = current.getDay() === 0 ? 6 : current.getDay() - 1; // Convert to 0-6 (Mon-Sun)
-    if (bulkSelectedDOW.size === 0 || bulkSelectedDOW.has(dow)) {
-      const dateStr = current.toISOString().split('T')[0];
-      newDates.add(dateStr);
-    }
-    current.setDate(current.getDate() + 1);
+function bulkLocalDateStr(date) {
+  // Formats a Date using its LOCAL year/month/day components — avoids the
+  // off-by-one-day bug that toISOString() causes in timezones ahead of UTC
+  // (e.g. Malawi, UTC+2), where local midnight rolls back to the previous
+  // day once converted to UTC.
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function bulkMonthChanged() {
+  const monthStr = document.getElementById('bulk-month').value; // "YYYY-MM"
+  if (!monthStr) return;
+
+  // Selections persist across months — switching the month picker only
+  // changes which month's grid is displayed, it doesn't clear anything.
+  // This lets an admin pick, say, a few dates in July, switch to August,
+  // pick a few more, and have all of them included in one bulk booking.
+  bulkRenderCurrentMonth();
+  bulkUpdateCounter();
+}
+
+function bulkGetMonthRange() {
+  const monthStr = document.getElementById('bulk-month').value;
+  if (!monthStr) return null;
+  const [yearS, monthS] = monthStr.split('-');
+  const year = parseInt(yearS, 10);
+  const month = parseInt(monthS, 10); // 1-12
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0); // last day of the month
+  return { monthStr, year, month, start, end };
+}
+
+function bulkRenderCurrentMonth() {
+  const range = bulkGetMonthRange();
+  if (!range) return;
+  bulkRenderCalendar(range.start, range.end);
+}
+
+function bulkSelectAllDays() {
+  const range = bulkGetMonthRange();
+  if (!range) return;
+  const daysInMonth = range.end.getDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dd = String(d).padStart(2, '0');
+    bulkSelectedDates.add(`${range.monthStr}-${dd}`);
   }
-  
-  bulkSelectedDates = newDates;
-  bulkRenderCalendar(start, end);
+  bulkRenderCurrentMonth();
   bulkUpdateCounter();
 }
 
@@ -5976,7 +5973,7 @@ function bulkRenderCalendar(start, end) {
   
   // Render each day as a clickable button
   monthDays.forEach(day => {
-    const dateStr = day.toISOString().split('T')[0];
+    const dateStr = bulkLocalDateStr(day);
     const dayName = day.toLocaleDateString('en-US', { weekday: 'short' });
     const dayNum = day.getDate();
     
@@ -6017,7 +6014,8 @@ function bulkUpdateCounter() {
   // Show selected dates
   if (count > 0) {
     const datesList = Array.from(bulkSelectedDates).sort().map(d => {
-      const date = new Date(d);
+      const [y, m, dd] = d.split('-').map(Number);
+      const date = new Date(y, m - 1, dd);
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }).join(', ');
     document.getElementById('bulk-selected-display').textContent = datesList;
@@ -6138,10 +6136,10 @@ function bulkSelectGuestAndProceed() {
 
 function bulkReset() {
   bulkSelectedDates.clear();
-  bulkSelectedDOW.clear();
   bulkSelectedMember = null;
-  document.getElementById('bulk-start-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('bulk-end-date').value = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const monthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('bulk-month').value = monthStr;
   document.getElementById('bulk-time').value = '';
   document.getElementById('bulk-member-search').value = '';
   document.getElementById('bulk-guest-name').value = '';
@@ -6150,12 +6148,7 @@ function bulkReset() {
   document.getElementById('bulk-member-mode').style.display = 'block';
   document.getElementById('bulk-walkin-mode').style.display = 'none';
   document.getElementById('bulk-message').style.display = 'none';
-  for (let i = 0; i < 7; i++) {
-    const btn = document.getElementById(`bulk-dow-${i}`);
-    btn.style.background = 'rgba(255,255,255,0.08)';
-    btn.style.color = 'rgba(255,255,255,0.6)';
-  }
-  bulkUpdateCalendar();
+  bulkMonthChanged();
 }
 
 async function bulkConfirmBooking() {
