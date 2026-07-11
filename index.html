@@ -464,7 +464,7 @@ h1, h2, h3, .hero-label-title, .facility-name { letter-spacing: -0.02em; }
 }
 .slots-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:10px; }
 .slots-grid-2col { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:10px; }
-.court-cols-head { display:grid; grid-template-columns:1fr 1fr; gap:9px; position:sticky; top:56px; z-index:8; padding:8px 0 10px; margin:0 0 4px; background:var(--bg); }
+.court-cols-head { display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:10px 0 0; margin:0; background:transparent; }
 .court-col-label {
   font-family:var(--font-d); font-weight:600; font-size:15px; letter-spacing:1px;
   text-transform:uppercase; color:#fff; text-align:center; padding:9px 6px;
@@ -2944,16 +2944,20 @@ async function renderSlots() {
     return card;
   };
 
-  // Sticky column headers: Court 1 | Court 2 — pinned just below the date strip
+  // Column headers: Court 1 | Court 2 — nested inside the sticky date-strip-wrap
+  // so it always sits flush against the date row with zero gap, no matter how
+  // heights change (font loading, content, etc). No separate sticky math needed.
   const colHead = document.createElement('div');
   colHead.className = 'court-cols-head';
   colHead.innerHTML = `<div class="court-col-label">Court 1</div><div class="court-col-label">Court 2</div>`;
-  // Measure header + date-strip so the labels park right under the dates, not behind them
-  const _hdr   = document.querySelector('#screen-booking .page-hdr');
   const _strip = document.querySelector('#screen-booking .date-strip-wrap');
-  const _off   = (_hdr ? _hdr.offsetHeight : 56) + (_strip ? _strip.offsetHeight : 0);
-  colHead.style.top = _off + 'px';
-  container.appendChild(colHead);
+  if (_strip) {
+    const _oldHead = _strip.querySelector('.court-cols-head');
+    if (_oldHead) _oldHead.remove();
+    _strip.appendChild(colHead);
+  } else {
+    container.appendChild(colHead);
+  }
 
   const SESSIONS = [
     { slots: MEN,       cls:'morning', emoji:'🎾', label:'Open to All · 6:15 – 8:15 AM' },
