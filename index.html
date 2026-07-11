@@ -2134,7 +2134,12 @@ const SUPABASE_HEADERS = {
 // Holds the admin's JWT after a successful Supabase Auth login.
 // Admin write operations use THIS token, not the anon key, so RLS on the
 // server enforces that only an authenticated admin can write.
-let adminAccessToken = sessionStorage.getItem('sxa_admin_token') || null;
+let adminAccessToken = null;
+try {
+  adminAccessToken = sessionStorage.getItem('sxa_admin_token') || null;
+} catch(e) {
+  console.error('❌ sessionStorage unavailable:', e.message);
+}
 
 // Headers for admin WRITE operations. Carries the admin JWT when logged in.
 // If not logged in, it falls back to the anon key — which RLS will REJECT,
@@ -2435,7 +2440,11 @@ adminManualBlocks = [
     !ALL_HARD_BLOCKS.some(rb => rb.court === b.court && rb.date === b.date && rb.time === b.time)
   )
 ];
-localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+try {
+  localStorage.setItem('sxa_date_blocks', JSON.stringify(adminManualBlocks));
+} catch(e) {
+  console.error('❌ Failed to save blocks to localStorage (storage may be unavailable):', e.message);
+}
 console.log('🔐 HARD BLOCKS LOADED: 23 Rizwan Limbada + 6 Sirhaan Karim Tuesday sessions (Jun-Nov 2026):', adminManualBlocks.length, 'total blocks');
 
 // Expose for manual testing
