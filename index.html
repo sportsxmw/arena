@@ -2238,69 +2238,59 @@ async function supaInsert(booking) {
     body: JSON.stringify(booking)
   });
   const text = await res.text();
-  if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + text);
+  if (!res.ok) {
+    // 409 / 23505 = unique constraint on (court, date, time) — slot already taken
+    if (res.status === 409 || text.indexOf('23505') !== -1 || text.toLowerCase().indexOf('duplicate') !== -1) {
+      const err = new Error('SLOT_TAKEN');
+      err.slotTaken = true;
+      throw err;
+    }
+    throw new Error('HTTP ' + res.status + ': ' + text);
+  }
   return text;
 }
 
 async function supaFetch(court, date) {
+  // Server-side filtered fetch — only this court + this day travels over the
+  // wire (a few hundred bytes instead of the whole table). On success the
+  // local cache for that court/day is refreshed. On ANY failure this THROWS —
+  // callers must decide what to do; we never silently pretend stale cache is live.
+  const dateOnly = date.split('T')[0];
+  const url = SUPABASE_URL + '/rest/v1/Bookings'
+    + '?select=court,date,time,price,duration,user_email'
+    + '&court=eq.' + encodeURIComponent(court)
+    + '&date=gte.' + encodeURIComponent(dateOnly + 'T00:00:00')
+    + '&date=lte.' + encodeURIComponent(dateOnly + 'T23:59:59')
+    + '&order=time.asc';
+
+  // Abort slow requests so weak mobile data fails fast instead of hanging
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
+  let res;
   try {
-    const dateOnly = date.split('T')[0];
-    
-    // Always check localStorage first
-    const cached = DB.bookings().filter(b => b.court === court && b.date.startsWith(dateOnly));
-    
-    // Try Supabase as secondary source
-    try {
-      const allUrl = SUPABASE_URL + '/rest/v1/Bookings?select=*&limit=1000';
-      console.log('Syncing with Supabase...');
-      
-      const allRes = await fetch(allUrl, {
-        headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' },
-        method: 'GET',
-        cache: 'no-store'   // bypass browser HTTP cache entirely — same fix already used in supaBlocksFetch()
-      });
-      
-      if (allRes.ok) {
-        const allBookings = await allRes.json();
-        console.log('Supabase sync success:', allBookings.length, 'bookings');
-        
-        // Merge with cache
-        const filtered = allBookings.filter(b => {
-          const bookingDate = (b.date || '').split('T')[0];
-          return b.court === court && bookingDate === dateOnly;
-        });
-        
-        // Update local cache with Supabase data
-        const others = DB.bookings().filter(b => !(b.court === court && b.date.startsWith(dateOnly)));
-        const merged = [...others, ...allBookings.map(b => ({
-          court: b.court,
-          date: (b.date || '').split('T')[0],
-          time: b.time,
-          price: b.price,
-          duration: b.duration,
-          userEmail: b.user_email
-        }))];
-        DB.saveBookings(merged);
-        
-        return filtered.map(r => ({
-          court: r.court,
-          date: (r.date || '').split('T')[0],
-          time: r.time,
-          price: r.price,
-          duration: r.duration,
-          userEmail: r.user_email
-        }));
-      }
-    } catch(supaErr) {
-      console.warn('Supabase unavailable, using local cache');
-    }
-    
-    // Return cached bookings
-    return cached;
-  } catch(e) {
-    console.error('supaFetch error:', e.message);
-    return DB.bookings().filter(b => b.court === court && b.date.split('T')[0] === date.split('T')[0]);
+    res = await fetch(url, { headers: SUPABASE_HEADERS, method: 'GET', signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
   }
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+
+  const rows = await res.json();
+  const live = rows.map(r => ({
+    court:    r.court,
+    date:     (r.date || '').split('T')[0],
+    time:     r.time,
+    price:    r.price,
+    duration: r.duration,
+    userEmail: r.user_email
+  }));
+
+  // Refresh local cache for this court/day only
+  try {
+    const others = DB.bookings().filter(b => !(b.court === court && b.date.startsWith(dateOnly)));
+    DB.saveBookings([...others, ...live]);
+  } catch(e) { /* cache write failure is non-fatal */ }
+
+  return live;
 }
 
 async function supaDelete(court, date, time) {
@@ -2917,25 +2907,52 @@ async function renderSlots() {
 
   const COURTS = ['Padel Court 1', 'Padel Court 2'];
 
-  // Fetch live bookings for BOTH courts for this date
+  // Fetch live bookings for BOTH courts for this date.
+  // If sync fails for a court we do NOT show cached data as if it were live —
+  // those slots render greyed-out with a warning banner + retry instead.
   const bookingsByCourt = {};
+  const syncFailed = {};
   for (const court of COURTS) {
     try {
-      const live = await supaFetch(court, dateVal);
-      bookingsByCourt[court] = live;
-      // Keep local cache in sync so confirmBooking guard still works
-      const others = DB.bookings().filter(b => !(b.court===court && b.date.startsWith(dateVal)));
-      DB.saveBookings([...others, ...live.map(b => ({...b, bookedAt: b.bookedAt || ''}))]);
+      bookingsByCourt[court] = await supaFetch(court, dateVal);
+      syncFailed[court] = false;
     } catch(e) {
-      console.warn('Supabase fetch failed for '+court+', using local cache:', e.message);
+      console.warn('Supabase fetch failed for ' + court + ':', e.message);
       bookingsByCourt[court] = DB.bookings().filter(b => b.court===court && b.date.startsWith(dateVal));
+      syncFailed[court] = true;
     }
   }
+  const anySyncFailed = syncFailed['Padel Court 1'] || syncFailed['Padel Court 2'];
 
   container.innerHTML = '';
 
+  // Visible warning when live availability could not be loaded
+  if (anySyncFailed) {
+    const banner = document.createElement('div');
+    banner.className = 'sync-banner';
+    banner.style.cssText = 'display:flex;align-items:center;gap:10px;background:#fff3e0;border:1px solid #f0b458;border-radius:12px;padding:12px 14px;margin:0 0 14px;font-size:13px;line-height:1.4;color:#7a4d00;font-weight:600;';
+    banner.innerHTML = `
+      <span style="font-size:18px">⚠️</span>
+      <span style="flex:1">Couldn't load live availability — check your internet connection. Booking is paused so slots don't get double-booked.</span>
+      <button onclick="renderSlots()" style="flex-shrink:0;background:#cc0000;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">Retry</button>`;
+    container.appendChild(banner);
+  }
+
   // Build one slot chip for a given court
   const makeChip = (slot, session, court, courtBookings) => {
+    // If we couldn't verify against Supabase, never render a bookable "Open" chip
+    if (syncFailed[court]) {
+      const cachedHit = courtBookings.find(b => b.time===slot.time);
+      const known = !!cachedHit || isHardBlocked(court, dateVal, slot.time) || isAdminManualBlocked(court, dateVal, slot.time) || isBookedAlready(court, dateVal, slot.time) || isClosedSlot(slot.time, dateVal);
+      const card = document.createElement('button');
+      card.className = 'slot-card ' + session + ' booked';
+      card.disabled = true;
+      card.style.opacity = '0.55';
+      card.innerHTML = `
+        <div class="slot-time">${slot.time}</div>
+        <div class="slot-status"><span class="slot-dot" style="background:${known ? '#c65a5a' : '#b0b0b0'}"></span>${known ? 'Booked' : 'No signal'}</div>`;
+      return card;
+    }
     const existing      = courtBookings.find(b => b.time===slot.time);
     const isHardBlock   = isHardBlocked(court, dateVal, slot.time);
     const isManualBlock = isAdminManualBlocked(court, dateVal, slot.time);
@@ -3065,12 +3082,15 @@ async function confirmBooking() {
   const userAlreadyBooked = DB.bookings().find(b => b.court===selectedCourt && b.date.startsWith(pendingDate) && b.time===selectedSlot.time && b.userEmail===CU.email);
   if (userAlreadyBooked) { toast('You already have this slot booked!', true); return; }
 
-  // Final guard — re-check Supabase live before inserting
+  // Final guard — re-check Supabase live before inserting.
+  // If we can't reach Supabase we BLOCK the booking rather than trust cache —
+  // trusting a stale cache here is exactly how double-bookings happen.
   let liveBookings = [];
   try {
     liveBookings = await supaFetch(selectedCourt, pendingDate);
   } catch(e) {
-    liveBookings = DB.bookings().filter(b => b.court===selectedCourt && b.date.startsWith(pendingDate));
+    toast("No connection — couldn't verify this slot is still free. Please check your internet and try again.", true);
+    return;
   }
   const already = liveBookings.find(b => b.time===selectedSlot.time);
   if (already) { toast('This slot was just taken — please choose another.', true); showScreen('booking','book'); renderSlots(); return; }
@@ -3094,11 +3114,17 @@ async function confirmBooking() {
   };
 
 
-  // Save to Supabase
+  // Save to Supabase — the DB's unique constraint on (court, date, time) is
+  // the final backstop against two phones grabbing the same slot.
   try {
     await supaInsert(booking);
   } catch(e) {
-    toast('Booking failed: ' + e.message, true);
+    if (e.slotTaken) {
+      toast('This slot was just taken — please choose another.', true);
+      showScreen('booking','book'); renderSlots();
+    } else {
+      toast('Booking failed: ' + e.message, true);
+    }
     return;
   }
 
@@ -3130,7 +3156,7 @@ async function refreshAccount() {
   // Pull latest bookings for this user from Supabase
   try {
     const url = SUPABASE_URL + '/rest/v1/Bookings?user_email=eq.' + encodeURIComponent(CU.email) + '&select=court,date,time,price,duration,user_email,booked_at,payment_method&order=booked_at.desc';
-    const res = await fetch(url, { headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' }, cache: 'no-store' });
+    const res = await fetch(url, { headers: SUPABASE_HEADERS });
     if (res.ok) {
       const rows = await res.json();
       const fresh = rows.map(r => ({
@@ -3792,8 +3818,21 @@ function isAdminManualBlocked(court, dateVal, time) {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {
     navigator.serviceWorker.register("./sw.js")
-      .then(function(reg) { console.log("SW registered:", reg.scope); })
+      .then(function(reg) {
+        console.log("SW registered:", reg.scope);
+        // Actively check for a newer sw.js every launch — installed PWAs can
+        // otherwise run a stale app version for weeks.
+        reg.update();
+      })
       .catch(function(err) { console.warn("SW failed:", err); });
+
+    // When a new SW takes control, reload once so users get the fresh app
+    var _swReloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function() {
+      if (_swReloaded) return;
+      _swReloaded = true;
+      window.location.reload();
+    });
   });
 }
 
@@ -5229,7 +5268,12 @@ async function adminRender() {
   container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:30px;font-size:14px;">Loading…</div>';
 
   let liveBookings = [];
-  try { liveBookings = await supaFetch(court, dateVal); } catch(e) { liveBookings = DB.bookings().filter(b => b.court===court && b.date.startsWith(dateVal)); }
+  let adminOffline = false;
+  try { liveBookings = await supaFetch(court, dateVal); }
+  catch(e) {
+    adminOffline = true;
+    liveBookings = DB.bookings().filter(b => b.court===court && b.date.startsWith(dateVal));
+  }
 
   const allSlots = [...MEN, ...LADIES, ...MIXED_DAY, ...GENTS];
   const d = new Date(dateVal + 'T00:00:00');
@@ -5237,7 +5281,7 @@ async function adminRender() {
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dateLabel = `${dayName}, ${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
 
-  container.innerHTML = `<div style="font-family:'Antonio', sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">${court} · ${dateLabel}</div>`;
+  container.innerHTML = `<div style="font-family:'Antonio', sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">${court} · ${dateLabel}${adminOffline ? ' · <span style=\\"color:#f0b458\\">⚠ OFFLINE CACHE — NOT LIVE</span>' : ''}</div>`;
 
   allSlots.forEach(slot => {
     const userBooked   = liveBookings.find(b => b.time === slot.time);
@@ -5712,8 +5756,7 @@ async function adminLoadBookings() {
     const url = `${SUPABASE_URL}/rest/v1/Bookings?order=date.desc,time.asc&limit=50`;
     const res = await fetch(url, {
       method: 'GET',
-      headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' },
-      cache: 'no-store'
+      headers: SUPABASE_HEADERS
     });
     
     if (!res.ok) {
@@ -5816,7 +5859,7 @@ async function adminConfirmBookForMember() {
       + '&date=eq.' + encodeURIComponent(dateStr + 'T00:00:00')
       + '&time=eq.' + encodeURIComponent(_abmSlot.time)
       + '&select=id&limit=1';
-    const checkRes = await fetch(checkUrl, { headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' }, cache: 'no-store' });
+    const checkRes = await fetch(checkUrl, { headers: SUPABASE_HEADERS });
     if (checkRes.ok) {
       const checkData = await checkRes.json();
       if (checkData.length > 0) {
@@ -6181,7 +6224,7 @@ async function bulkConfirmBooking() {
   try {
     const url = SUPABASE_URL + '/rest/v1/Bookings?court=eq.' + encodeURIComponent(court)
       + '&time=eq.' + encodeURIComponent(time) + '&select=date';
-    const res = await fetch(url, { headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' }, cache: 'no-store' });
+    const res = await fetch(url, { headers: SUPABASE_HEADERS });
     if (res.ok) {
       (await res.json()).forEach(b => bookedDates.add((b.date || '').split('T')[0]));
     }
