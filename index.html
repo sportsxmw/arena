@@ -107,13 +107,16 @@ h1, h2, h3, .hero-label-title, .facility-name { letter-spacing: -0.02em; }
 #landing-video {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: center; z-index: 0;
-  /* fade-in on load + slow cinematic Ken Burns zoom */
+  /* subtle contrast/saturation lift makes a soft source read as crisper */
+  filter: contrast(1.06) saturate(1.12);
+  /* fade-in on load + slow cinematic Ken Burns zoom (kept gentle — big zoom
+     magnifies compression artifacts on the video) */
   opacity: 0;
   animation: heroFade 1.2s ease-out forwards, heroZoom 24s ease-in-out 0.2s infinite alternate;
   will-change: opacity, transform;
 }
 @keyframes heroFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes heroZoom { from { transform: scale(1.0); } to { transform: scale(1.09); } }
+@keyframes heroZoom { from { transform: scale(1.0); } to { transform: scale(1.045); } }
 /* landing text rises + fades in just after the video */
 .landing-content { animation: heroContentIn 1s ease-out 0.35s both; }
 @keyframes heroContentIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -1553,8 +1556,8 @@ body.dark #screen-gallery .page-hdr { background: #0d0f16; border-color: #1e2130
 
 <!-- LANDING -->
 <div class="screen active" id="screen-landing">
-  <button onclick="openAdminLogin()" style="position:absolute;top:16px;right:16px;z-index:100;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;letter-spacing:1px;cursor:pointer;">ADMIN</button>
-  <video id="landing-video" src="https://res.cloudinary.com/dfbherdd5/video/upload/q_auto:best,w_1920,c_limit,e_sharpen:60/v1778872225/WhatsApp_Video_2026-05-15_at_8.33.03_PM_h5hl6h.mp4"
+  <video id="landing-video" src="https://res.cloudinary.com/dfbherdd5/video/upload/f_auto:video,q_auto:best,w_1080,c_limit,e_sharpen:30/v1778872225/WhatsApp_Video_2026-05-15_at_8.33.03_PM_h5hl6h.mp4"
+    poster="https://res.cloudinary.com/dfbherdd5/video/upload/so_0,f_jpg,q_auto:good,w_1080,c_limit/v1778872225/WhatsApp_Video_2026-05-15_at_8.33.03_PM_h5hl6h.jpg"
     autoplay loop muted playsinline preload="auto"></video>
   <button onclick="openAdminLogin()" style="position:absolute;top:14px;right:14px;z-index:100;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.6);font-size:11px;font-weight:600;padding:6px 10px;cursor:pointer;letter-spacing:0.5px;">⚙ Admin</button>
 
@@ -2853,7 +2856,9 @@ function isClosedSlot(slotTime, dateVal) {
   return isMorningSession || isMay28th;
 }
 
+let _renderToken = 0;
 async function renderSlots() {
+  const myToken = ++_renderToken; // any newer call invalidates this one
   const container = document.getElementById('slots-container');
   const dateVal   = document.getElementById('booking-date').value;
 
@@ -2923,6 +2928,10 @@ async function renderSlots() {
     }
   }
   const anySyncFailed = syncFailed['Padel Court 1'] || syncFailed['Padel Court 2'];
+
+  // A newer renderSlots started while we were fetching — this render is stale,
+  // let the newer one own the screen.
+  if (myToken !== _renderToken) return;
 
   container.innerHTML = '';
 
@@ -3075,6 +3084,17 @@ function sendWhatsApp() {
 
 async function confirmBooking() {
   if (!CU || !selectedSlot) return;
+  // Guard against double-taps — one booking attempt at a time
+  if (confirmBooking._busy) return;
+  confirmBooking._busy = true;
+  try {
+    await _doConfirmBooking();
+  } finally {
+    confirmBooking._busy = false;
+  }
+}
+
+async function _doConfirmBooking() {
 
   // ── Blocking feature removed - All members can book regardless of payment status ──
 
@@ -3128,10 +3148,12 @@ async function confirmBooking() {
     return;
   }
 
-  // Also save locally so UI stays in sync
-  const bookedAt = new Date().toISOString();
-  const all = DB.bookings();
-  all.push({ 
+  // Also save locally so UI stays in sync. Never let a local-storage failure
+  // hide the fact that the booking DID succeed on the server.
+  try {
+    const bookedAt = new Date().toISOString();
+    const all = DB.bookings();
+    all.push({ 
     court: booking.court, 
     date: booking.date, 
     time: booking.time, 
@@ -3142,6 +3164,7 @@ async function confirmBooking() {
     paymentMethod: paymentMethodValue
   });
   DB.saveBookings(all);
+  } catch(e) { console.warn('Local cache save failed (booking is safe on server):', e.message); }
 
   toast('✓ Booking Confirmed!');
   setTimeout(() => showScreen('home','home'), 1200);
@@ -3658,16 +3681,12 @@ function toast(msg, isErr=false) {
 // ============ LANDING VIDEO MUTE TOGGLE ============
 function toggleMute() {
   const video = document.getElementById('landing-video');
+  if (!video) return;
   const icon  = document.getElementById('unmute-icon');
   const label = document.getElementById('unmute-label');
   video.muted = !video.muted;
-  if (video.muted) {
-    icon.textContent  = '🔇';
-    label.textContent = 'Tap for Sound';
-  } else {
-    icon.textContent  = '🔊';
-    label.textContent = 'Sound On';
-  }
+  if (icon)  icon.textContent  = video.muted ? '🔇' : '🔊';
+  if (label) label.textContent = video.muted ? 'Tap for Sound' : 'Sound On';
 }
 
 // ============ LOCATION ACTIONS ============
