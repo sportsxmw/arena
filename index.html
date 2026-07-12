@@ -2255,8 +2255,9 @@ async function supaFetch(court, date) {
       console.log('Syncing with Supabase...');
       
       const allRes = await fetch(allUrl, {
-        headers: SUPABASE_HEADERS,
-        method: 'GET'
+        headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' },
+        method: 'GET',
+        cache: 'no-store'   // bypass browser HTTP cache entirely — same fix already used in supaBlocksFetch()
       });
       
       if (allRes.ok) {
@@ -3129,7 +3130,7 @@ async function refreshAccount() {
   // Pull latest bookings for this user from Supabase
   try {
     const url = SUPABASE_URL + '/rest/v1/Bookings?user_email=eq.' + encodeURIComponent(CU.email) + '&select=court,date,time,price,duration,user_email,booked_at,payment_method&order=booked_at.desc';
-    const res = await fetch(url, { headers: SUPABASE_HEADERS });
+    const res = await fetch(url, { headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' }, cache: 'no-store' });
     if (res.ok) {
       const rows = await res.json();
       const fresh = rows.map(r => ({
@@ -5711,7 +5712,8 @@ async function adminLoadBookings() {
     const url = `${SUPABASE_URL}/rest/v1/Bookings?order=date.desc,time.asc&limit=50`;
     const res = await fetch(url, {
       method: 'GET',
-      headers: SUPABASE_HEADERS
+      headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' },
+      cache: 'no-store'
     });
     
     if (!res.ok) {
@@ -5814,7 +5816,7 @@ async function adminConfirmBookForMember() {
       + '&date=eq.' + encodeURIComponent(dateStr + 'T00:00:00')
       + '&time=eq.' + encodeURIComponent(_abmSlot.time)
       + '&select=id&limit=1';
-    const checkRes = await fetch(checkUrl, { headers: SUPABASE_HEADERS });
+    const checkRes = await fetch(checkUrl, { headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' }, cache: 'no-store' });
     if (checkRes.ok) {
       const checkData = await checkRes.json();
       if (checkData.length > 0) {
@@ -6179,7 +6181,7 @@ async function bulkConfirmBooking() {
   try {
     const url = SUPABASE_URL + '/rest/v1/Bookings?court=eq.' + encodeURIComponent(court)
       + '&time=eq.' + encodeURIComponent(time) + '&select=date';
-    const res = await fetch(url, { headers: SUPABASE_HEADERS });
+    const res = await fetch(url, { headers: { ...SUPABASE_HEADERS, 'Cache-Control': 'no-cache, no-store' }, cache: 'no-store' });
     if (res.ok) {
       (await res.json()).forEach(b => bookedDates.add((b.date || '').split('T')[0]));
     }
